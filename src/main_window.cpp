@@ -36,6 +36,7 @@
 #include <QGraphicsItem>
 #include <QThreadPool>
 #include <QProcess>
+#include <QDir>
 #include <QDebug>
 
 #include <cmath> // tmp
@@ -260,6 +261,13 @@ void MainWindow::run(const QString &executable)
 	m_process = new QProcess();
 	connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
 		SLOT(finished(int)));
+	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+	// TODO: This will only work on OS X
+#ifdef Q_OS_MAC
+	env.insert("DYLD_LIBRARY_PATH", QDir::currentPath() + "/prefix/usr/lib:" + env.value("DYLD_LIBRARY_PATH"));
+	env.insert("DYLD_LIBRARY_PATH", QDir::currentPath() + "/prefix/usr:" + env.value("DYLD_LIBRARY_PATH"));
+#endif
+	m_process->setProcessEnvironment(env);
 	m_process->start(executable, QStringList());
 	if(!m_process->waitForStarted(10000)) stop();
 	ui->actionStop->setEnabled(true);
