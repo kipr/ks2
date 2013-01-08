@@ -24,11 +24,11 @@
 int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
-	#ifdef Q_OS_MAC
-		QDir::setCurrent(QApplication::applicationDirPath() + "/../");
-	#else
-		QDir::setCurrent(QApplication::applicationDirPath());
-	#endif
+#ifdef Q_OS_MAC
+	QDir::setCurrent(QApplication::applicationDirPath() + "/../");
+#else
+	QDir::setCurrent(QApplication::applicationDirPath());
+#endif
 	MainWindow mainWindow;
 	mainWindow.show();
 	mainWindow.raise();

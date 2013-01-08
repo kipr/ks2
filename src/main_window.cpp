@@ -145,7 +145,7 @@ MainWindow::~MainWindow()
 {
 	stop();
 	m_server->stop();
-	QThread::yieldCurrentThread();
+	m_server->wait();
 	delete m_server;
 	delete m_robot;
 	delete ui;

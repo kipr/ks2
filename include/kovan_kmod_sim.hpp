@@ -45,7 +45,7 @@ namespace Kovan
 		void reset();
 		
 		unsigned short servoValue(const unsigned char &port) const;
-		short motorCounter() const;
+		void setMotorCounter(unsigned char port, int value);
 	
 		Kovan::State &state();
 	

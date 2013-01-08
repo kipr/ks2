@@ -70,9 +70,10 @@ unsigned short Kovan::KmodSim::servoValue(const unsigned char &port) const
 	return ((m_state.t[servos[port]] << 8) - SERVO_MIN) / (SERVO_MAX - SERVO_MIN) * 1024.0;
 }
 
-short Kovan::KmodSim::motorCounter() const
+void Kovan::KmodSim::setMotorCounter(unsigned char port, int value)
 {
-	
+	m_state.t[BEMF_0_HIGH + port] = (value >> 16) & 0x0000FFFF;
+	m_state.t[BEMF_0_LOW + port] = (value >> 0) & 0x0000FFFF;
 }
 
 Kovan::State &Kovan::KmodSim::state()
