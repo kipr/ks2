@@ -102,7 +102,6 @@ void ServerThread::handleAction(const Packet &action)
 	QString type = data.action;
 
 	if(type == COMMAND_ACTION_COMPILE) {
-
 		CompileWorker *worker = new CompileWorker(m_archive, m_proto, this);
 		worker->start();
 		worker->wait();

@@ -1,10 +1,13 @@
 #include "kovan_button_provider.hpp"
 
-#include <kovan/button.hpp>
+#include "button.hpp"
 
-Kovan::ButtonProvider::ButtonProvider(QObject *parent)
-	: QObject(parent)
+Kovan::ButtonProvider::ButtonProvider(KmodSim *sim, QObject *parent)
+	: QObject(parent),
+	m_button(sim),
+	m_extraShown(false)
 {
+	reset();
 }
 
 Kovan::ButtonProvider::~ButtonProvider()
@@ -13,58 +16,38 @@ Kovan::ButtonProvider::~ButtonProvider()
 
 bool Kovan::ButtonProvider::isExtraShown() const
 {
-	return ExtraButtons::isShown();
+	return m_button.isExtraShown();
 }
 
-QString Kovan::ButtonProvider::text(const ButtonProvider::ButtonId& id) const
+QString Kovan::ButtonProvider::text(::Button::Type::Id id) const
 {
-	AbstractTextButton *button = lookup(id);
-	return button ? QString::fromUtf8(button->text()) : QString();
+	const char *text = m_button.text(id);
+	return text ? QString::fromUtf8(text) : QString();
 }
 
-bool Kovan::ButtonProvider::setPressed(const ButtonProvider::ButtonId& id, bool pressed) const
+bool Kovan::ButtonProvider::setPressed(::Button::Type::Id id, bool pressed)
 {
-	AbstractTextButton *button = lookup(id);
-	if(!button) return false;
-	button->setPressed(pressed);
+	m_button.setPressed(id, pressed);
 	return true;
-}
-
-template <typename T, size_t N>
-inline size_t sizeOfArray(const T(&)[N])
-{
-	return N;
 }
 
 void Kovan::ButtonProvider::reset()
 {
-	const size_t len = sizeOfArray(Button::all);
-	for(size_t i = 0; i < len; ++i) {
-		Button::all[i]->resetText();
-	}
-	ExtraButtons::hide();
+	m_button.resetButtons();
+	m_extraShown = false;
+	emit extraShownChanged(false);
 }
 
 void Kovan::ButtonProvider::refresh()
 {
-	if(Button::A.isTextDirty()) emit buttonTextChanged(A, text(A));
-	if(Button::B.isTextDirty()) emit buttonTextChanged(B, text(B));
-	if(Button::C.isTextDirty()) emit buttonTextChanged(C, text(C));
-	if(Button::X.isTextDirty()) emit buttonTextChanged(X, text(X));
-	if(Button::Y.isTextDirty()) emit buttonTextChanged(Y, text(Y));
-	if(Button::Z.isTextDirty()) emit buttonTextChanged(Z, text(Z));
-	if(ExtraButtons::isShownDirty()) emit extraShownChanged(ExtraButtons::isShown());
-}
-
-AbstractTextButton *Kovan::ButtonProvider::lookup(const ButtonProvider::ButtonId& id) const
-{
-	switch(id) {
-		case ButtonProvider::A: return &Button::A;
-		case ButtonProvider::B: return &Button::B;
-		case ButtonProvider::C: return &Button::C;
-		case ButtonProvider::X: return &Button::X;
-		case ButtonProvider::Y: return &Button::Y;
-		case ButtonProvider::Z: return &Button::Z;
+	if(m_button.isTextDirty(::Button::Type::A)) emit buttonTextChanged(::Button::Type::A, text(::Button::Type::A));
+	if(m_button.isTextDirty(::Button::Type::B)) emit buttonTextChanged(::Button::Type::B, text(::Button::Type::B));
+	if(m_button.isTextDirty(::Button::Type::C)) emit buttonTextChanged(::Button::Type::C, text(::Button::Type::C));
+	if(m_button.isTextDirty(::Button::Type::X)) emit buttonTextChanged(::Button::Type::X, text(::Button::Type::X));
+	if(m_button.isTextDirty(::Button::Type::Y)) emit buttonTextChanged(::Button::Type::Y, text(::Button::Type::Y));
+	if(m_button.isTextDirty(::Button::Type::Z)) emit buttonTextChanged(::Button::Type::Z, text(::Button::Type::Z));
+	if(m_extraShown != m_button.isExtraShown()) {
+		m_extraShown = m_button.isExtraShown();
+		emit extraShownChanged(m_extraShown);
 	}
-	return 0;
 }

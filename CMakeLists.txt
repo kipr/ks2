@@ -40,7 +40,7 @@ ENDIF()
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/deploy)
 
-target_link_libraries(ks2 ${QT_LIBRARIES} kovan kovanserial pcompiler kar)
+target_link_libraries(ks2 ${QT_LIBRARIES} kovanserial pcompiler kar)
 
 #######################################
 #            Installation             #

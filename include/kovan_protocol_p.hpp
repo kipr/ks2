@@ -7,7 +7,7 @@ extern "C" {
 
 #define MAX_COMMAND_DATA_SIZE 16
 #define NUM_FPGA_REGS 48
-#define TOTAL_REGS 128
+#define TOTAL_REGS 200
 
 
 namespace Kovan
@@ -33,7 +33,7 @@ namespace Kovan
 
 	struct WriteCommand
 	{
-		unsigned short addy; // 0 - 40
+		unsigned short addy; // 0 - 200
 		unsigned short val; // 0 - 0xFFFF
 	};
 

@@ -1,14 +1,14 @@
 /**************************************************************************
  *  Copyright 2012 KISS Institute for Practical Robotics                  *
  *                                                                        *
- *  This file is part of ks2.                                             *
+ *  This file is part of libkovan.                                        *
  *                                                                        *
- *  ks2 is free software: you can redistribute it and/or modify           *
+ *  libkovan is free software: you can redistribute it and/or modify      *
  *  it under the terms of the GNU General Public License as published by  *
  *  the Free Software Foundation, either version 2 of the License, or     *
  *  (at your option) any later version.                                   *
  *                                                                        *
- *  ks2 is distributed in the hope that it will be useful,                *
+ *  libkovan is distributed in the hope that it will be useful,           *
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *  GNU General Public License for more details.                          *
@@ -60,6 +60,7 @@
 #define MOTOR_PWM_1 		34
 #define MOTOR_PWM_2 		35
 #define MOTOR_PWM_3 		36
+#define MOTOR_DRIVE_CODE_T 	39
 #define MOTOR_ALL_STOP 		40
 
 #define BEMF_0_HIGH 		41
@@ -76,7 +77,7 @@
 #define GOAL_POS_0_HIGH 	52
 #define GOAL_POS_1_HIGH 	53
 #define GOAL_POS_2_HIGH 	54
-#define GOAL_POS_3_HIGH 	55
+#define GOAL_POS_3_HIGH		55
 
 #define GOAL_SPEED_0_LOW 	56
 #define GOAL_SPEED_1_LOW 	57
@@ -115,6 +116,19 @@
 #define PID_DD_2 		88
 #define PID_DD_3 		89
 
-#define MOTOR_DRIVE_CODE_T 	39
+#define BUTTON_STATES 		90
+#define BUTTON_TEXT_DIRTY 	91
+#define BUTTON_A_TEXT_START 	92
+#define BUTTON_A_TEXT_END 	100
+#define BUTTON_B_TEXT_START 	101
+#define BUTTON_B_TEXT_END 	109
+#define BUTTON_C_TEXT_START 	110
+#define BUTTON_C_TEXT_END 	118
+#define BUTTON_X_TEXT_START 	119
+#define BUTTON_X_TEXT_END 	127
+#define BUTTON_Y_TEXT_START 	128
+#define BUTTON_Y_TEXT_END 	136
+#define BUTTON_Z_TEXT_START 	137
+#define BUTTON_Z_TEXT_END 	145
 
 #endif

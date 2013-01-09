@@ -21,6 +21,8 @@
 
 #include <QMainWindow>
 
+#include "button_ids.hpp"
+
 namespace Ui
 {
 	class MainWindow;
@@ -49,6 +51,7 @@ public:
 private slots:
 	void buttonPressed();
 	void buttonReleased();
+	void textChanged(::Button::Type::Id id, const QString &text);
 	void update();
 	
 	void finished(int exitCode);

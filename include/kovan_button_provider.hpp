@@ -3,40 +3,35 @@
 
 #include <QObject>
 
-class AbstractTextButton;
+#include "button.hpp"
 
 namespace Kovan
 {
+	class Button;
+	class KmodSim;
+	
 	class ButtonProvider : public QObject
 	{
 	Q_OBJECT
 	public:
-		enum ButtonId {
-			A,
-			B,
-			C,
-			X,
-			Y,
-			Z
-		};
-		
-		ButtonProvider(QObject *parent = 0);
+		ButtonProvider(KmodSim *sim, QObject *parent = 0);
 		~ButtonProvider();
 		
 		virtual bool isExtraShown() const;
-		virtual QString text(const ButtonProvider::ButtonId& id) const;
-		virtual bool setPressed(const ButtonProvider::ButtonId& id, bool pressed) const;
+		virtual QString text(::Button::Type::Id id) const;
+		virtual bool setPressed(::Button::Type::Id id, bool pressed);
 		
 	public slots:
 		virtual void reset();
 		virtual void refresh();
 	
 	signals:
-		void buttonTextChanged(const ButtonProvider::ButtonId& id, const QString& text);
+		void buttonTextChanged(::Button::Type::Id id, const QString& text);
 		void extraShownChanged(const bool& shown);
 	
 	private:
-		AbstractTextButton *lookup(const ButtonProvider::ButtonId& id) const;
+		Button m_button;
+		bool m_extraShown;
 	};
 }
 
