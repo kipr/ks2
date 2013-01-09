@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent),
 	ui(new Ui::MainWindow),
 	m_robot(new Robot()),
-	m_buttonProvider(new Kovan::ButtonProvider(this)),
+	m_buttonProvider(0),
 	m_kmod(new Kovan::KmodSim(this)),
 	m_heartbeat(new Heartbeat(this)),
 	m_process(0)
@@ -121,21 +121,27 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->y, SIGNAL(released()), SLOT(buttonReleased()));
 	connect(ui->z, SIGNAL(released()), SLOT(buttonReleased()));
 	
-	ui->extras->connect(m_buttonProvider, SIGNAL(extraShownChanged(bool)), SLOT(setVisible(bool)));
-	
 	connect(ui->actionStop, SIGNAL(activated()), SLOT(stop()));
 	connect(ui->actionQuit, SIGNAL(activated()), QCoreApplication::instance(), SLOT(quit()));
-	
-	m_buttonProvider->reset();
 	
 	m_kmod->setup();
 	
 	TcpServer *serial = new TcpServer;
-	serial->bind(KOVAN_SERIAL_PORT);
-	serial->listen(2);
+	if(serial->bind(KOVAN_SERIAL_PORT)) {
+		perror("bind");
+	}
+	if(!serial->listen(2)) {
+		perror("listen");
+	}
 	m_server = new ServerThread(serial);
 	connect(m_server, SIGNAL(run(QString)), SLOT(run(QString)));
 	m_server->start();
+	
+	m_buttonProvider = new Kovan::ButtonProvider(m_kmod, this);
+	ui->extras->connect(m_buttonProvider, SIGNAL(extraShownChanged(bool)), SLOT(setVisible(bool)));
+	connect(m_buttonProvider,
+		SIGNAL(buttonTextChanged(::Button::Type::Id, QString)),
+		SLOT(textChanged(::Button::Type::Id, QString)));
 	
 	ui->actionStop->setEnabled(false);
 	
@@ -157,12 +163,12 @@ void MainWindow::buttonPressed()
 	QObject *from = sender();
 	if(!from) return;	
 	
-	Kovan::ButtonProvider::ButtonId id = Kovan::ButtonProvider::A;
-	if(from == ui->b) id = Kovan::ButtonProvider::B;
-	else if(from == ui->c) id = Kovan::ButtonProvider::C;
-	else if(from == ui->x) id = Kovan::ButtonProvider::X;
-	else if(from == ui->y) id = Kovan::ButtonProvider::Y;
-	else if(from == ui->z) id = Kovan::ButtonProvider::Z;
+	::Button::Type::Id id = ::Button::Type::A;
+	if(from == ui->b) id = ::Button::Type::B;
+	else if(from == ui->c) id = ::Button::Type::C;
+	else if(from == ui->x) id = ::Button::Type::X;
+	else if(from == ui->y) id = ::Button::Type::Y;
+	else if(from == ui->z) id = ::Button::Type::Z;
 	
 	m_buttonProvider->setPressed(id, true);
 }
@@ -172,14 +178,39 @@ void MainWindow::buttonReleased()
 	QObject *from = sender();
 	if(!from) return;	
 	
-	Kovan::ButtonProvider::ButtonId id = Kovan::ButtonProvider::A;
-	if(from == ui->b) id = Kovan::ButtonProvider::B;
-	else if(from == ui->c) id = Kovan::ButtonProvider::C;
-	else if(from == ui->x) id = Kovan::ButtonProvider::X;
-	else if(from == ui->y) id = Kovan::ButtonProvider::Y;
-	else if(from == ui->z) id = Kovan::ButtonProvider::Z;
+ 	::Button::Type::Id id = ::Button::Type::A;
+	if(from == ui->b) id = ::Button::Type::B;
+	else if(from == ui->c) id = ::Button::Type::C;
+	else if(from == ui->x) id = ::Button::Type::X;
+	else if(from == ui->y) id = ::Button::Type::Y;
+	else if(from == ui->z) id = ::Button::Type::Z;
 	
 	m_buttonProvider->setPressed(id, false);
+}
+
+void MainWindow::textChanged(::Button::Type::Id id, const QString &text)
+{
+	switch(id) {
+	case ::Button::Type::A:
+		ui->a->setText(text);
+		break;
+	case ::Button::Type::B:
+		ui->b->setText(text);
+		break;
+	case ::Button::Type::C:
+		ui->c->setText(text);
+		break;
+	case ::Button::Type::X:
+		ui->x->setText(text);
+		break;
+	case ::Button::Type::Y:
+		ui->y->setText(text);
+		break;
+	case ::Button::Type::Z:
+		ui->z->setText(text);
+		break;
+	default: break;
+	}
 }
 
 void MainWindow::update()
@@ -318,6 +349,7 @@ int MainWindow::unfixPort(int port)
 
 void MainWindow::reset()
 {
+	m_buttonProvider->reset();
 	m_robot->setLeftSpeed(0.0);
 	m_robot->setRightSpeed(0.0);
 	m_robot->setLeftTravelDistance(0.0);

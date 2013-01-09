@@ -126,6 +126,7 @@ Compiler::OutputList CompileWorker::compile()
 
 	const QString cachedResult = QDir::tempPath() + "/computer_executable";
 	QFile::remove(cachedResult);
+	qDebug() << cachedResult;
 	if(!QFile::copy(terminals[0], cachedResult)) {
 		ret << OutputList() << Output(path, 1,
 			QByteArray(), ("error: Failed to copy \"" + terminals[0]

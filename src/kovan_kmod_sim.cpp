@@ -108,7 +108,7 @@ Kovan::StateResponse Kovan::KmodSim::do_packet(const QByteArray &datagram)
 	StateResponse response;
 	memset(&response, 0, sizeof(Kovan::StateResponse));
 	
-	qDebug() << "Doing packet";
+	// qDebug() << "Doing packet";
 	
 	if(datagram.size() < sizeof(Packet)) {
 		qWarning() << "Packet was too small!! Not processing.";
@@ -127,6 +127,7 @@ Kovan::StateResponse Kovan::KmodSim::do_packet(const QByteArray &datagram)
 		
 		case WriteCommandType:
 			w_cmd = (WriteCommand *) &(cmd.data);
+			if(w_cmd->addy >= TOTAL_REGS) break;
 			m_state.t[w_cmd->addy] = w_cmd->val;
 			break;
 		
