@@ -38,7 +38,7 @@ ELSEIF(UNIX)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 	ADD_EXECUTABLE(ks2 ${SOURCES})
 ELSEIF(WIN32)
-	SET(CMAKE_CXX_FLAGS "-Wl,--enable-auto-import")
+	add_definitions("-Wl,--enable-auto-import")
 	ADD_EXECUTABLE(ks2 WIN32 ${SOURCES})
 ENDIF()
 
