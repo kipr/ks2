@@ -44,7 +44,7 @@ static const int servos[4] = {
 
 Kovan::KmodSim::KmodSim(QObject *parent)
 	: QObject(parent),
-	m_socket(new QUdpSocket())
+	m_socket(new QUdpSocket(this))
 {
 	reset();
 	connect(m_socket, SIGNAL(readyRead()), SLOT(readyRead()));
@@ -83,6 +83,7 @@ Kovan::State &Kovan::KmodSim::state()
 
 void Kovan::KmodSim::readyRead()
 {
+
 	while(m_socket->hasPendingDatagrams()) {
 		QByteArray datagram;
 		datagram.resize(m_socket->pendingDatagramSize());
@@ -102,6 +103,8 @@ void Kovan::KmodSim::readyRead()
 
 Kovan::StateResponse Kovan::KmodSim::do_packet(const QByteArray &datagram)
 {
+
+
 	int have_state_request = 0;
 	int num_write_commands = 0;
 

@@ -128,8 +128,9 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->actionStop, SIGNAL(activated()), SLOT(stop()));
 	connect(ui->actionQuit, SIGNAL(activated()), QCoreApplication::instance(), SLOT(quit()));
 	
-	m_kmod->setup();
-	
+	bool ret = m_kmod->setup();
+	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
+
 	TcpServer *serial = new TcpServer;
 	if(serial->bind(KOVAN_SERIAL_PORT)) {
 		perror("bind");
