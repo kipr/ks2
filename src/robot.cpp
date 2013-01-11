@@ -57,6 +57,8 @@ Robot::Robot()
 	m_rightRange(new QGraphicsLineItem())
 {
 	m_robot->setData(0, BoardFile::Fake);
+	m_leftWheel->setData(0, BoardFile::Fake);
+	m_rightWheel->setData(0, BoardFile::Fake);
 	m_robot->setBrush(Qt::lightGray);
 	
 	m_leftWheel->setParentItem(m_robot);
@@ -221,7 +223,7 @@ QLineF Robot::intersectDistance(QGraphicsLineItem *item, const double &baseAngle
 	const QLineF unit = line.unitVector();
 	const double xs = unit.dx();
 	const double ys = unit.dy();
-	for(double i = m_wheelDiameter / 2; i < m_rangeLength; i += 1.0) {
+	for(double i = 0; i < m_rangeLength; i += 1.0) {
 		QRectF r(m_robot->x() + i * xs, m_robot->y() + i * ys, xs, ys);
 		QList<QGraphicsItem *> items = scene->items(r, Qt::IntersectsItemBoundingRect, Qt::AscendingOrder);
 		foreach(QGraphicsItem *t, items) {
