@@ -22,6 +22,7 @@
 #include "kovan_kmod_sim.hpp"
 #include "kovan_button_provider.hpp"
 #include "robot.hpp"
+#include "light.hpp"
 #include "simulator.hpp"
 #include "board_file.hpp"
 #include "server_thread.hpp"
@@ -45,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent),
 	ui(new Ui::MainWindow),
 	m_robot(new Robot()),
+	m_light(new Light()),
 	m_buttonProvider(0),
 	m_kmod(new Kovan::KmodSim(this)),
 	m_heartbeat(new Heartbeat(this)),
@@ -102,6 +104,8 @@ MainWindow::MainWindow(QWidget *parent)
 		ui->sim->scene()->addItem(item);
 		
 	m_robot->robot()[0]->setRotation(45);
+	
+	if(ui->sim->scene()) ui->sim->scene()->addItem(m_light);
 	
 	QTimer *timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), SLOT(update()));
@@ -269,6 +273,10 @@ void MainWindow::update()
 	s.t[analogs[0]] = m_robot->leftRange() / m_robot->rangeLength() * 1024.0;
 	s.t[analogs[1]] = m_robot->frontRange() / m_robot->rangeLength() * 1024.0;
 	s.t[analogs[2]] = m_robot->rightRange() / m_robot->rangeLength() * 1024.0;
+	QLineF lightLine(m_robot->robot()[0]->pos(), m_light->pos());
+	double value = 1024.0 - lightLine.length() / 50.0 * 1024.0;
+	if(value < 0.0) value = 0.0;
+	s.t[analogs[3]] = m_light->isOn() ? value : 0;
 	
 	for(int i = 0; i < 8; ++i) {
 		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));

@@ -32,6 +32,7 @@ class TouchDial;
 class QLabel;
 class QProcess;
 class Robot;
+class Light;
 class Heartbeat;
 class ServerThread;
 
@@ -71,6 +72,7 @@ private:
 	TouchDial *m_motors[4];
 	TouchDial *m_servos[4];
 	Robot *m_robot;
+	Light *m_light;
 	
 	ServerThread *m_server;
 	

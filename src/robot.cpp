@@ -8,6 +8,38 @@
 #include "board_file.hpp"
 
 #include <cmath>
+#include <QGraphicsSceneMouseEvent>
+
+class RobotBase : public QGraphicsRectItem
+{
+public:
+	RobotBase(double x, double y, double w, double h)
+		: QGraphicsRectItem(x, y, w, h),
+		m_grabbed(false)
+	{
+	}
+	
+protected:
+	virtual void mousePressEvent(QGraphicsSceneMouseEvent *event)
+	{
+		m_grabbed = true;
+		
+	}
+	
+	virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+	{
+		if(!m_grabbed) return;
+		setPos(event->scenePos());
+	}
+	
+	virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+	{
+		m_grabbed = false;
+	}
+	
+private:
+	bool m_grabbed;
+};
 
 Robot::Robot()
 	: m_wheelDiameter(16.0),
@@ -17,7 +49,7 @@ Robot::Robot()
 	m_rangeLength(70.0),
 	m_leftTravelDistance(0.0),
 	m_rightTravelDistance(0.0),
-	m_robot(new QGraphicsRectItem(-m_wheelDiameter / 2.0, -m_wheelDiameter / 2.0, m_wheelDiameter, m_wheelDiameter)),
+	m_robot(new RobotBase(-m_wheelDiameter / 2.0, -m_wheelDiameter / 2.0, m_wheelDiameter, m_wheelDiameter)),
 	m_leftWheel(new QGraphicsEllipseItem(-m_wheelRadii, -m_wheelDiameter / 2.0 - m_wheelRadii, m_wheelRadii * 2, m_wheelRadii)),
 	m_rightWheel(new QGraphicsEllipseItem(-m_wheelRadii, m_wheelDiameter / 2.0, m_wheelRadii * 2, m_wheelRadii)),
 	m_leftRange(new QGraphicsLineItem()),
