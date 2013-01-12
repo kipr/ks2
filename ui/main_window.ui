@@ -95,7 +95,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
+         <y>-479</y>
          <width>304</width>
          <height>1200</height>
         </rect>
@@ -920,6 +920,7 @@
    </attribute>
    <addaction name="actionStop"/>
    <addaction name="separator"/>
+   <addaction name="actionReset"/>
   </widget>
   <action name="actionAbout">
    <property name="icon">
@@ -955,6 +956,16 @@
    </property>
    <property name="text">
     <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/arrow_refresh_small.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>

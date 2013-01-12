@@ -98,6 +98,8 @@ MainWindow::MainWindow(QWidget *parent)
 	// connect(m_kmod, SIGNAL(stateChanged(State)), SLOT(update()));
 	
 	ui->sim->setScene(BoardFile::load("2013.board"));
+	ui->sim->setSceneRect(0.0, 0.0, 275.0, 275.0);
+
 	
 	if(ui->sim->scene())
 	foreach(QGraphicsItem *item, m_robot->robot())
@@ -128,6 +130,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->actionStop, SIGNAL(activated()), SLOT(stop()));
 	connect(ui->actionQuit, SIGNAL(activated()), QCoreApplication::instance(), SLOT(quit()));
 	
+	connect(ui->actionReset, SIGNAL(activated()), SLOT(reset()));
+
 	bool ret = m_kmod->setup();
 	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
 
@@ -301,10 +305,6 @@ void MainWindow::update()
 	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 0;
 
 
-	
-
-
-
 	for(int i = 0; i < 8; ++i) {
 		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
 		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "1" : "0");
@@ -312,6 +312,7 @@ void MainWindow::update()
 	
 	ui->scrollArea->update();
 }
+
 
 void MainWindow::finished(int exitCode)
 {
@@ -389,6 +390,8 @@ void MainWindow::reset()
 	m_robot->setRightSpeed(0.0);
 	m_robot->setLeftTravelDistance(0.0);
 	m_robot->setRightTravelDistance(0.0);
+	m_robot->reset();
+	m_light->reset();
 }
 
 void MainWindow::setDigital(int port, bool on)

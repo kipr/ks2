@@ -87,12 +87,15 @@ Robot::Robot()
 	m_frontRange->setZValue(-0.1);
 	m_rightRange->setZValue(-0.1);
 
+	this->reset();
 
+	m_time.start();
+}
 
+void Robot::reset()
+{
 	m_robot->setX(15.0);
 	m_robot->setY(15.0);
-	
-	m_time.start();
 }
 
 Robot::~Robot()
