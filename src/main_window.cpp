@@ -275,17 +275,14 @@ void MainWindow::update()
 	s.t[analogs[1]] = m_robot->frontRange() / m_robot->rangeLength() * 1023.0;
 	s.t[analogs[2]] = m_robot->rightRange() / m_robot->rangeLength() * 1023.0;
 	
-	// TODO: Untested
-	setDigital(0, m_robot->leftRange() < 20.0);
-	setDigital(1, m_robot->rightRange() < 20.0);
+	setDigital(0, m_robot->leftRange() < 10.0);
+	setDigital(1, m_robot->rightRange() < 10.0);
 	
 	QLineF lightLine(m_robot->robot()[0]->pos(), m_light->pos());
 	double value = 1023.0 - lightLine.length() / 50.0 * 1023.0;
 	if(value < 0.0) value = 0.0;
 	s.t[analogs[3]] = m_light->isOn() ? value : 0;
 	
-	qWarning() << "dig in: " << s.t[DIG_IN];
-
 	for(int i = 0; i < 8; ++i) {
 		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
 		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "1" : "0");

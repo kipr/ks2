@@ -207,35 +207,6 @@ void Robot::update()
 
 	double newX = m_robot->x() + cos(theta) * dd;
 	double newY = m_robot->y() + sin(theta) * dd;
-/*
-	// collision detection
-	QRectF r(m_robot->x()-robotRad, m_robot->y()-robotRad, 2.0*robotRad, 2.0*robotRad);
-	QList<QGraphicsItem *> items = m_robot->scene()->items(r, Qt::IntersectsItemBoundingRect, Qt::AscendingOrder);
-	foreach(QGraphicsItem *t, items) {
-		if(t->data(0) == BoardFile::Real) {
-			newX = m_robot->x() - cos(theta) * dd;
-			newY = m_robot->y() - sin(theta) * dd;
-			break;
-		}
-	}
-
-
-	// boundary checking
-	qWarning() << "x: " << newX << " y: " << newY;
-
-	if (newX > boardMaxX){
-		newX = boardMaxX;
-	}else if (newX < boardMinX){
-		newX = boardMinX;
-	}
-
-	if (newY > boardMaxY){
-		newY = boardMaxY;
-	}else if (newY < boardMinY){
-		newY = boardMinY;
-	}
-*/
-
 
 	m_robot->setX(newX);
 	m_robot->setY(newY);
