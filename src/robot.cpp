@@ -207,7 +207,7 @@ void Robot::update()
 
 	double newX = m_robot->x() + cos(theta) * dd;
 	double newY = m_robot->y() + sin(theta) * dd;
-
+/*
 	// collision detection
 	QRectF r(m_robot->x()-robotRad, m_robot->y()-robotRad, 2.0*robotRad, 2.0*robotRad);
 	QList<QGraphicsItem *> items = m_robot->scene()->items(r, Qt::IntersectsItemBoundingRect, Qt::AscendingOrder);
@@ -234,7 +234,7 @@ void Robot::update()
 	}else if (newY < boardMinY){
 		newY = boardMinY;
 	}
-
+*/
 
 
 	m_robot->setX(newX);
