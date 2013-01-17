@@ -989,7 +989,7 @@
   <customwidget>
    <class>ConsoleWidget</class>
    <extends>QTextEdit</extends>
-   <header>ConsoleWidget.h</header>
+   <header>console_widget.hpp</header>
   </customwidget>
   <customwidget>
    <class>TouchDial</class>

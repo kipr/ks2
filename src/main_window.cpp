@@ -405,8 +405,4 @@ void MainWindow::setDigital(int port, bool on)
 	Kovan::State &s = m_kmod->state();
 	if(on) s.t[DIG_IN] |= 1 << (7 - port);
 	else s.t[DIG_IN] &= ~(1 << (7 - port));
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 9cf768e1fe75b474014ecd4232ae0017aa2e5aa0
