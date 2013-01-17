@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>855</width>
+    <width>998</width>
     <height>556</height>
    </rect>
   </property>
@@ -75,7 +75,7 @@
      <widget class="QScrollArea" name="scrollArea">
       <property name="minimumSize">
        <size>
-        <width>300</width>
+        <width>370</width>
         <height>0</height>
        </size>
       </property>
@@ -96,8 +96,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>285</width>
-         <height>1212</height>
+         <width>355</width>
+         <height>1230</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -123,20 +123,36 @@
             <number>6</number>
            </property>
            <item>
-            <widget class="ConsoleWidget" name="console">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>150</height>
-              </size>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <property name="spacing">
+              <number>0</number>
              </property>
-             <property name="undoRedoEnabled">
-              <bool>false</bool>
+             <property name="topMargin">
+              <number>0</number>
              </property>
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
+             <item>
+              <widget class="ConsoleWidget" name="console">
+               <property name="minimumSize">
+                <size>
+                 <width>308</width>
+                 <height>166</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>308</width>
+                 <height>166</height>
+                </size>
+               </property>
+               <property name="undoRedoEnabled">
+                <bool>false</bool>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -850,7 +866,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>855</width>
+     <width>998</width>
      <height>22</height>
     </rect>
    </property>
@@ -953,7 +969,7 @@
   <customwidget>
    <class>ConsoleWidget</class>
    <extends>QTextEdit</extends>
-   <header>console_widget.hpp</header>
+   <header>ConsoleWidget.h</header>
   </customwidget>
   <customwidget>
    <class>TouchDial</class>
