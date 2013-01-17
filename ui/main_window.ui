@@ -483,7 +483,17 @@
            <item row="4" column="2">
             <widget class="QLabel" name="label_23">
              <property name="text">
-              <string>Light</string>
+              <string>Left Light</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Right Light</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -924,9 +934,9 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionStart"/>
    <addaction name="actionStop"/>
    <addaction name="separator"/>
+   <addaction name="actionReset"/>
   </widget>
   <action name="actionAbout">
    <property name="icon">
@@ -962,6 +972,16 @@
    </property>
    <property name="text">
     <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/arrow_refresh_small.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>

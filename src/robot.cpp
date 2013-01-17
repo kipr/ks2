@@ -10,6 +10,15 @@
 #include <cmath>
 #include <QGraphicsSceneMouseEvent>
 
+
+
+//TODO: load these
+static const double robotRad = 10.0;
+static const double boardMaxX = 243.205 - robotRad;
+static const double boardMaxY = 243.205 - robotRad;
+static const double boardMinX = 0.0 + robotRad;
+static const double boardMinY = 0.0 + robotRad;
+
 class RobotBase : public QGraphicsRectItem
 {
 public:
@@ -77,8 +86,16 @@ Robot::Robot()
 	m_leftRange->setZValue(-0.1);
 	m_frontRange->setZValue(-0.1);
 	m_rightRange->setZValue(-0.1);
-	
+
+	this->reset();
+
 	m_time.start();
+}
+
+void Robot::reset()
+{
+	m_robot->setX(15.0);
+	m_robot->setY(15.0);
 }
 
 Robot::~Robot()
@@ -190,10 +207,13 @@ void Robot::update()
 	m_robot->setRotation((theta + (dr - dl) / m_wheelDiameter) * 180.0 / M_PI);
 	m_leftTravelDistance += dl;
 	m_rightTravelDistance += dr;
-	
-	m_robot->setX(m_robot->x() + cos(theta) * dd);
-	m_robot->setY(m_robot->y() + sin(theta) * dd);
-	
+
+	double newX = m_robot->x() + cos(theta) * dd;
+	double newY = m_robot->y() + sin(theta) * dd;
+
+	m_robot->setX(newX);
+	m_robot->setY(newY);
+
 	updateRangeLines();
 	
 	m_time.restart();

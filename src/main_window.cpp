@@ -98,6 +98,8 @@ MainWindow::MainWindow(QWidget *parent)
 	// connect(m_kmod, SIGNAL(stateChanged(State)), SLOT(update()));
 	
 	ui->sim->setScene(BoardFile::load("2013.board"));
+	ui->sim->setSceneRect(0.0, 0.0, 275.0, 275.0);
+
 	
 	if(ui->sim->scene())
 	foreach(QGraphicsItem *item, m_robot->robot())
@@ -128,8 +130,11 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->actionStop, SIGNAL(activated()), SLOT(stop()));
 	connect(ui->actionQuit, SIGNAL(activated()), QCoreApplication::instance(), SLOT(quit()));
 	
-	m_kmod->setup();
-	
+	connect(ui->actionReset, SIGNAL(activated()), SLOT(reset()));
+
+	bool ret = m_kmod->setup();
+	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
+
 	TcpServer *serial = new TcpServer;
 	if(serial->bind(KOVAN_SERIAL_PORT)) {
 		perror("bind");
@@ -270,9 +275,9 @@ void MainWindow::update()
 		AN_IN_7
 	};
 	
-	s.t[analogs[0]] = m_robot->leftRange() / m_robot->rangeLength() * 1024.0;
-	s.t[analogs[1]] = m_robot->frontRange() / m_robot->rangeLength() * 1024.0;
-	s.t[analogs[2]] = m_robot->rightRange() / m_robot->rangeLength() * 1024.0;
+	s.t[analogs[0]] = m_robot->leftRange() / m_robot->rangeLength() * 1023.0;
+	s.t[analogs[1]] = m_robot->frontRange() / m_robot->rangeLength() * 1023.0;
+	s.t[analogs[2]] = m_robot->rightRange() / m_robot->rangeLength() * 1023.0;
 	
 	// TODO: Untested
 	setDigital(0, s.t[analogs[0]] < 100);
@@ -283,13 +288,37 @@ void MainWindow::update()
 	if(value < 0.0) value = 0.0;
 	s.t[analogs[3]] = m_light->isOn() ? value : 0;
 	
+	const double lRad = M_PI * (m_robot->robot()[0]->rotation() + 45.0) / 180.0;
+	const double rRad = M_PI * (m_robot->robot()[0]->rotation() - 45.0) / 180.0;
+
+	const double lightSensorDisplacement = 15.0;
+
+	const QPointF leftLightSensorPos = m_robot->robot()[0]->pos() +
+			lightSensorDisplacement * QPointF(cos(lRad), sin(lRad));
+
+	const QPointF rightLightSensorPos = m_robot->robot()[0]->pos() +
+			lightSensorDisplacement * QPointF(cos(rRad), sin(rRad));
+
+	QLineF leftLightline(leftLightSensorPos, m_light->pos());
+	QLineF rightLightline(rightLightSensorPos, m_light->pos());
+
+	double leftLightValue = 1023.0 - leftLightline.length() / 50.0 * 1023.0;
+	if(leftLightValue < 0.0) leftLightValue = 0.0;
+	s.t[analogs[3]] = m_light->isOn() ? leftLightValue : 0;
+
+	double rightLightValue = 1023.0 - rightLightline.length() / 50.0 * 1023.0;
+	if(rightLightValue < 0.0) rightLightValue = 0.0;
+	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 0;
+
+
 	for(int i = 0; i < 8; ++i) {
 		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
-		m_digitals[i]->setText(s.t[DIG_IN] << (7 - i) ? "1" : "0");
+		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "1" : "0");
 	}
 	
 	ui->scrollArea->update();
 }
+
 
 void MainWindow::finished(int exitCode)
 {
@@ -367,6 +396,8 @@ void MainWindow::reset()
 	m_robot->setRightSpeed(0.0);
 	m_robot->setLeftTravelDistance(0.0);
 	m_robot->setRightTravelDistance(0.0);
+	m_robot->reset();
+	m_light->reset();
 }
 
 void MainWindow::setDigital(int port, bool on)
@@ -374,4 +405,8 @@ void MainWindow::setDigital(int port, bool on)
 	Kovan::State &s = m_kmod->state();
 	if(on) s.t[DIG_IN] |= 1 << (7 - port);
 	else s.t[DIG_IN] &= ~(1 << (7 - port));
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9cf768e1fe75b474014ecd4232ae0017aa2e5aa0

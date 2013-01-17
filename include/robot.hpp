@@ -14,6 +14,8 @@ class Robot
 public:
 	Robot();
 	~Robot();
+
+	void reset();
 	
 	void setWheelDiameter(const double &wheelDiameter);
 	const double &wheelDiameter() const;
@@ -41,7 +43,7 @@ public:
 	double rightRange() const;
 	
 	void update();
-	
+
 	QList<QGraphicsItem *> robot() const;
 	
 private:

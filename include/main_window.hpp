@@ -54,6 +54,7 @@ private slots:
 	void buttonReleased();
 	void textChanged(::Button::Type::Id id, const QString &text);
 	void update();
+	void reset();
 	
 	void finished(int exitCode);
 	
@@ -63,7 +64,6 @@ private slots:
 private:
 	void updateAdvert();
 	int unfixPort(int port);
-	void reset();
 	void setDigital(int port, bool on);
 	
 	Ui::MainWindow *ui;

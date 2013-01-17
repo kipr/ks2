@@ -10,6 +10,9 @@ public:
 	~Light();
 	
 	bool isOn() const;
+	void reset();
+	void toggle();
+	void setOn(bool on);
 	
 protected:
 	virtual void mousePressEvent(QGraphicsSceneMouseEvent *event);

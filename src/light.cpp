@@ -14,6 +14,7 @@ Light::Light()
 	
 	setPen(QPen(Qt::black));
 	mouseDoubleClickEvent(0);
+	this->reset();
 }
 
 Light::~Light()
@@ -23,6 +24,13 @@ Light::~Light()
 bool Light::isOn() const
 {
 	return m_on;
+}
+
+void Light::reset()
+{
+	setX(0.0);
+	setY(0.0);
+	setOn(false);
 }
 
 void Light::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -43,7 +51,12 @@ void Light::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void Light::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-	m_on = !m_on;
+	this->setOn(!m_on);
+}
+
+void Light::setOn(bool on)
+{
+	m_on = on;
 	QRadialGradient gradient(0, 0, 50);
 	QColor color = m_on ? QColor(255, 215, 0, 127) : QColor(50, 50, 50, 100);
 	gradient.setColorAt(0.0, color);
