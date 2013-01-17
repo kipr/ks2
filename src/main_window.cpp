@@ -283,11 +283,6 @@ void MainWindow::update()
 	setDigital(0, s.t[analogs[0]] < 100);
 	setDigital(1, s.t[analogs[2]] < 100);
 	
-	QLineF lightLine(m_robot->robot()[0]->pos(), m_light->pos());
-	double value = lightLine.length() / 50.0 * 1024.0;
-	if(value < 0.0) value = 0.0;
-	s.t[analogs[3]] = m_light->isOn() ? value : 0;
-	
 	const double lRad = M_PI * (m_robot->robot()[0]->rotation() + 45.0) / 180.0;
 	const double rRad = M_PI * (m_robot->robot()[0]->rotation() - 45.0) / 180.0;
 
@@ -302,14 +297,13 @@ void MainWindow::update()
 	QLineF leftLightline(leftLightSensorPos, m_light->pos());
 	QLineF rightLightline(rightLightSensorPos, m_light->pos());
 
-	double leftLightValue = 1023.0 - leftLightline.length() / 50.0 * 1023.0;
-	if(leftLightValue < 0.0) leftLightValue = 0.0;
+	double leftLightValue = leftLightline.length() / 50.0 * 1023.0;
+	if(leftLightValue > 1023.0) leftLightValue = 1023.0;
 	s.t[analogs[3]] = m_light->isOn() ? leftLightValue : 0;
 
-	double rightLightValue = 1023.0 - rightLightline.length() / 50.0 * 1023.0;
-	if(rightLightValue < 0.0) rightLightValue = 0.0;
+	double rightLightValue = rightLightline.length() / 50.0 * 1023.0;
+	if(rightLightValue > 1023.0) rightLightValue = 1023.0;
 	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 0;
-
 
 	for(int i = 0; i < 8; ++i) {
 		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
