@@ -299,11 +299,11 @@ void MainWindow::update()
 
 	double leftLightValue = leftLightline.length() / 50.0 * 1023.0;
 	if(leftLightValue > 1023.0) leftLightValue = 1023.0;
-	s.t[analogs[3]] = m_light->isOn() ? leftLightValue : 0;
+	s.t[analogs[3]] = m_light->isOn() ? leftLightValue : 1023.0;
 
 	double rightLightValue = rightLightline.length() / 50.0 * 1023.0;
 	if(rightLightValue > 1023.0) rightLightValue = 1023.0;
-	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 0;
+	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 1023.0;
 
 	for(int i = 0; i < 8; ++i) {
 		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
