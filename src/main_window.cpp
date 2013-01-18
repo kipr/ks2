@@ -224,6 +224,8 @@ void MainWindow::textChanged(::Button::Type::Id id, const QString &text)
 
 void MainWindow::update()
 {
+	if(!m_process) return;
+	
 	m_buttonProvider->refresh();
 	m_robot->update();
 	
