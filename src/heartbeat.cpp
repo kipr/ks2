@@ -1,6 +1,7 @@
 #include "heartbeat.hpp"
 
 #include <QTimer>
+#include <QDebug>
 
 Heartbeat::Heartbeat(QObject *parent)
 	: QObject(parent),
@@ -27,6 +28,7 @@ const Advert &Heartbeat::advert() const
 
 void Heartbeat::beat()
 {
+	qDebug() << "beat";
 	m_advertiser.reset();
 	m_advertiser.pulse(m_advert);
 }

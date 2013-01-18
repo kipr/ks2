@@ -39,12 +39,14 @@ void ServerThread::run()
 	while(!m_stop) {
 		QThread::msleep(100);
 		if(!m_server->accept(3)) continue;
+		qDebug() << "Got connection";
 		while(m_proto->next(p, 5000) && handle(p));
 	}
 }
 
 bool ServerThread::handle(const Packet &p)
 {
+	qDebug() << "got packet of type" << p.type;
 	if(p.type == Command::FileHeader) handleArchive(p);
 	else if(p.type == Command::FileAction) handleAction(p);
 	else if(p.type == Command::Hangup) return false;

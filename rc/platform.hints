@@ -1,10 +1,10 @@
 [General]
 C_FLAGS = -std=c99 -Wall -I${PREFIX}/usr/include -include stdio.h -include kovan/kovan.h -include target.h -g
 CXX_FLAGS = -Wall -I${PREFIX}/usr/include -include stdio.h -include kovan/kovan.hpp -include target.h -g
-LD_FLAGS = -L${PREFIX}/usr/lib 
+LD_FLAGS = -L${PREFIX}/usr/lib|-kovan
 
 [osx]
 LD_FLAGS = -lkovan
 
 [nix]
-LD_FLAGS = -L/usr/local/lib -lkovan
+LD_FLAGS = -L/usr/local/lib|-lkovan

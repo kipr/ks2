@@ -108,6 +108,8 @@ Compiler::OutputList CompileWorker::compile()
 		if(out.isTerminal() && out.generatedFiles().size() == 1) {
 			terminals << out.generatedFiles()[0];
 		}
+		qDebug() << out.output();
+		qDebug() << out.error();
 		success &= out.isSuccess();
 	}
 

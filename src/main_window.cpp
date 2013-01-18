@@ -29,6 +29,8 @@
 #include "kovan_regs_p.hpp"
 #include "heartbeat.hpp"
 
+ #include <winsock2.h>
+
 #include <kovanserial/kovan_serial.hpp>
 #include <kovanserial/tcp_server.hpp>
 #include <kovanserial/udp_advertiser.hpp>
@@ -136,11 +138,13 @@ MainWindow::MainWindow(QWidget *parent)
 	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
 
 	TcpServer *serial = new TcpServer;
-	if(serial->bind(KOVAN_SERIAL_PORT)) {
+	if(!serial->bind(KOVAN_SERIAL_PORT)) {
 		perror("bind");
+		qCritical() << WSAGetLastError();
 	}
 	if(!serial->listen(2)) {
 		perror("listen");
+		qCritical() << WSAGetLastError();
 	}
 	m_server = new ServerThread(serial);
 	connect(m_server, SIGNAL(run(QString)), SLOT(run(QString)));
