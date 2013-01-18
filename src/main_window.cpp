@@ -242,7 +242,10 @@ void MainWindow::update()
 		double val = 0.0;
 		bool pwm = false;
 		if(mode == 0) { // pwm
+			int code = s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2);
 			val = s.t[MOTOR_PWM_0 + i] / 2600.0;
+			if(code == 1) val = -val;
+			else if(code != 2) val = 0.0;
 			pwm = true;
 			if(val > 1.0) val = 1.0;
 		} else if(mode == 2) { // speed
@@ -307,7 +310,7 @@ void MainWindow::update()
 
 	for(int i = 0; i < 8; ++i) {
 		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
-		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "1" : "0");
+		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "0" : "1");
 	}
 	
 	ui->scrollArea->update();
@@ -397,6 +400,6 @@ void MainWindow::reset()
 void MainWindow::setDigital(int port, bool on)
 {
 	Kovan::State &s = m_kmod->state();
-	if(on) s.t[DIG_IN] |= 1 << (7 - port);
+	if(!on) s.t[DIG_IN] |= 1 << (7 - port);
 	else s.t[DIG_IN] &= ~(1 << (7 - port));
 }
