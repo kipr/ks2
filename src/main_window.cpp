@@ -228,6 +228,8 @@ void MainWindow::textChanged(::Button::Type::Id id, const QString &text)
 
 void MainWindow::update()
 {
+	if(!m_process) return;
+	
 	m_buttonProvider->refresh();
 	m_robot->update();
 	
@@ -246,7 +248,10 @@ void MainWindow::update()
 		double val = 0.0;
 		bool pwm = false;
 		if(mode == 0) { // pwm
+			int code = (s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2)) & 0x3;
 			val = s.t[MOTOR_PWM_0 + i] / 2600.0;
+			if(code == 1) val = -val;
+			else if(code != 2) val = 0.0;
 			pwm = true;
 			if(val > 1.0) val = 1.0;
 		} else if(mode == 2) { // speed
@@ -258,9 +263,9 @@ void MainWindow::update()
 		
 		const double m = 2.5;
 		int port = unfixPort(i);
-		if(port == 0) {
+		if(port == 2) {
 			m_robot->setLeftSpeed(val * (pwm ? m : 1.0));
-		} else if(port == 2) {
+		} else if(port == 0) {
 			m_robot->setRightSpeed(val * (pwm ? m : 1.0));
 		}
 		
@@ -283,8 +288,9 @@ void MainWindow::update()
 	s.t[analogs[1]] = m_robot->frontRange() / m_robot->rangeLength() * 1023.0;
 	s.t[analogs[2]] = m_robot->rightRange() / m_robot->rangeLength() * 1023.0;
 	
-	setDigital(0, m_robot->leftRange() < 10.0);
-	setDigital(1, m_robot->rightRange() < 10.0);
+	// TODO: Untested
+	setDigital(0, s.t[analogs[0]] < 100);
+	setDigital(1, s.t[analogs[2]] < 100);
 	
 	const double lRad = M_PI * (m_robot->robot()[0]->rotation() + 45.0) / 180.0;
 	const double rRad = M_PI * (m_robot->robot()[0]->rotation() - 45.0) / 180.0;
@@ -300,18 +306,17 @@ void MainWindow::update()
 	QLineF leftLightline(leftLightSensorPos, m_light->pos());
 	QLineF rightLightline(rightLightSensorPos, m_light->pos());
 
-	double leftLightValue = 1023.0 - leftLightline.length() / 50.0 * 1023.0;
-	if(leftLightValue < 0.0) leftLightValue = 0.0;
-	s.t[analogs[3]] = m_light->isOn() ? leftLightValue : 0;
+	double leftLightValue = leftLightline.length() / 50.0 * 1023.0;
+	if(leftLightValue > 1023.0) leftLightValue = 1023.0;
+	s.t[analogs[3]] = m_light->isOn() ? leftLightValue : 1023.0;
 
-	double rightLightValue = 1023.0 - rightLightline.length() / 50.0 * 1023.0;
-	if(rightLightValue < 0.0) rightLightValue = 0.0;
-	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 0;
-
+	double rightLightValue = rightLightline.length() / 50.0 * 1023.0;
+	if(rightLightValue > 1023.0) rightLightValue = 1023.0;
+	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 1023.0;
 
 	for(int i = 0; i < 8; ++i) {
 		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
-		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "1" : "0");
+		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "0" : "1");
 	}
 	
 	ui->scrollArea->update();
@@ -401,6 +406,6 @@ void MainWindow::reset()
 void MainWindow::setDigital(int port, bool on)
 {
 	Kovan::State &s = m_kmod->state();
-	if(on) s.t[DIG_IN] |= 1 << (7 - port);
+	if(!on) s.t[DIG_IN] |= 1 << (7 - port);
 	else s.t[DIG_IN] &= ~(1 << (7 - port));
 }
