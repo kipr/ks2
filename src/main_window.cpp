@@ -244,7 +244,7 @@ void MainWindow::update()
 		double val = 0.0;
 		bool pwm = false;
 		if(mode == 0) { // pwm
-			int code = s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2);
+			int code = (s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2)) & 0x3;
 			val = s.t[MOTOR_PWM_0 + i] / 2600.0;
 			if(code == 1) val = -val;
 			else if(code != 2) val = 0.0;
@@ -259,9 +259,9 @@ void MainWindow::update()
 		
 		const double m = 2.5;
 		int port = unfixPort(i);
-		if(port == 0) {
+		if(port == 2) {
 			m_robot->setLeftSpeed(val * (pwm ? m : 1.0));
-		} else if(port == 2) {
+		} else if(port == 0) {
 			m_robot->setRightSpeed(val * (pwm ? m : 1.0));
 		}
 		
