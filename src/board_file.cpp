@@ -45,6 +45,15 @@ void BoardFile::parse(const QString &contents, QGraphicsScene *scene)
 				parts[3].toDouble() * unitMult, parts[4].toDouble() * unitMult, pen);
 			item->setData(0, BoardFile::Fake);
 			item->setZValue(z);
+		} else if(parts[0] == "tape") {
+			if(args != 4) {
+				error(lineNum, 4, args);
+				continue;
+			}
+			QGraphicsItem *item = scene->addLine(parts[1].toDouble() * unitMult, parts[2].toDouble() * unitMult,
+				parts[3].toDouble() * unitMult, parts[4].toDouble() * unitMult, pen);
+			item->setData(0, BoardFile::Tape);
+			item->setZValue(z);
 		} else if(parts[0] == "set-z") {
 			if(args != 1) {
 				error(lineNum, 1, args);
