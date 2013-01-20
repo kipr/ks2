@@ -239,8 +239,8 @@ QLineF Robot::intersectDistance(QGraphicsLineItem *item, const double &baseAngle
 		QPointF(cos(rad), sin(rad)));
 	
 	const QLineF unit = line.unitVector();
-	const double xs = unit.dx() < 0.01 ? 1.0 : unit.dx();
-	const double ys = unit.dy() < 0.01 ? 1.0 : unit.dy();
+	const double xs = unit.dx() < 0.01 ? 0.01 : unit.dx();
+	const double ys = unit.dy() < 0.01 ? 0.01 : unit.dy();
 	for(double i = 0; i < m_rangeLength; i += 1.0) {
 		QRectF r(m_robot->x() + i * xs, m_robot->y() + i * ys, xs, ys);
 		QList<QGraphicsItem *> items = scene->items(r, Qt::IntersectsItemBoundingRect, Qt::AscendingOrder);
