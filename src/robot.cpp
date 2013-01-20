@@ -229,6 +229,14 @@ void Robot::updateRangeLines()
 	m_rightRange->setLine(intersectDistance(m_rightRange, 45.0));
 }
 
+template<typename T>
+T sign(T t)
+{
+	if(t < 0) return -1;
+	else if(t > 0) return 1;
+	return 0;
+}
+
 QLineF Robot::intersectDistance(QGraphicsLineItem *item, const double &baseAngle) const
 {
 	QGraphicsScene *scene = item->scene();
@@ -239,8 +247,11 @@ QLineF Robot::intersectDistance(QGraphicsLineItem *item, const double &baseAngle
 		QPointF(cos(rad), sin(rad)));
 	
 	const QLineF unit = line.unitVector();
-	const double xs = unit.dx() < 0.01 ? 0.01 : unit.dx();
-	const double ys = unit.dy() < 0.01 ? 0.01 : unit.dy();
+	// qDebug() << unit.dx();
+	double xs = unit.dx();
+	double ys = unit.dy();
+	if(xs == 0.0) xs = 0.0001;
+	if(ys == 0.0) ys = 0.0001;
 	for(double i = 0; i < m_rangeLength; i += 1.0) {
 		QRectF r(m_robot->x() + i * xs, m_robot->y() + i * ys, xs, ys);
 		QList<QGraphicsItem *> items = scene->items(r, Qt::IntersectsItemBoundingRect, Qt::AscendingOrder);
