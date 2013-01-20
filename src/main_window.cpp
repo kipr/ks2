@@ -361,8 +361,9 @@ void MainWindow::stop()
 	update();
 	if(!m_process) return;
 	ui->console->setProcess(0);
-	m_process->terminate();
-	if(!m_process->waitForFinished(5000)) m_process->kill();
+	
+	m_process->kill();
+	m_process->waitForFinished();
 	delete m_process;
 	m_process = 0;
 	ui->actionStop->setEnabled(false);
