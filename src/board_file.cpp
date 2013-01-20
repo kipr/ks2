@@ -16,7 +16,11 @@ QGraphicsScene *BoardFile::load(const QString &path)
 
 void BoardFile::parse(const QString &contents, QGraphicsScene *scene)
 {
+#ifndef Q_OS_WIN
 	const QStringList lines = contents.split("\n", QString::SkipEmptyParts);
+#else
+	const QStringList lines = contents.split("\r\n", QString::SkipEmptyParts);
+#endif
 	quint32 lineNum = 0;
 	QPen pen;
 	QBrush brush;
