@@ -29,7 +29,9 @@
 #include "kovan_regs_p.hpp"
 #include "heartbeat.hpp"
 
- #include <winsock2.h>
+#ifdef WIN32
+#include <winsock2.h>
+#endif
 
 #include <kovanserial/kovan_serial.hpp>
 #include <kovanserial/tcp_server.hpp>
@@ -140,11 +142,15 @@ MainWindow::MainWindow(QWidget *parent)
 	TcpServer *serial = new TcpServer;
 	if(!serial->bind(KOVAN_SERIAL_PORT)) {
 		perror("bind");
+#ifdef WIN32
 		qCritical() << WSAGetLastError();
+#endif
 	}
 	if(!serial->listen(2)) {
 		perror("listen");
+#ifdef WIN32
 		qCritical() << WSAGetLastError();
+#endif
 	}
 	m_server = new ServerThread(serial);
 	connect(m_server, SIGNAL(run(QString)), SLOT(run(QString)));

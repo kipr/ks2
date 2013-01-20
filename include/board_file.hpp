@@ -11,6 +11,7 @@ public:
 	enum Type
 	{
 		Real = 0,
+		Tape,
 		Fake
 	};
 	

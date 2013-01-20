@@ -75,7 +75,7 @@
      <widget class="QScrollArea" name="scrollArea">
       <property name="minimumSize">
        <size>
-        <width>370</width>
+        <width>365</width>
         <height>0</height>
        </size>
       </property>
@@ -96,7 +96,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>355</width>
+         <width>350</width>
          <height>1230</height>
         </rect>
        </property>
@@ -494,6 +494,26 @@
             <widget class="QLabel" name="label_2">
              <property name="text">
               <string>Right Light</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="2">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>Left Reflectance</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="2">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>Right Reflectance</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
