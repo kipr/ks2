@@ -408,6 +408,7 @@ void MainWindow::reset()
 	m_robot->setRightTravelDistance(0.0);
 	m_robot->reset();
 	m_light->reset();
+	m_robot->robot()[0]->setRotation(45);
 }
 
 void MainWindow::setDigital(int port, bool on)
