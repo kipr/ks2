@@ -10,6 +10,8 @@
 #include <cmath>
 #include <QGraphicsSceneMouseEvent>
 
+#include "kovan_spiral-inl.hpp"
+
 //TODO: load these
 static const double robotRad = 10.0;
 static const double boardMaxX = 243.205 - robotRad;
@@ -192,6 +194,18 @@ double Robot::rightRange() const
 	return m_rightRange->line().length();
 }
 
+
+double Robot::leftReflectance() const
+{
+	return m_leftReflectance;
+}
+
+double Robot::rightReflectance() const
+{
+	return m_rightReflectance;
+}
+
+
 void Robot::update()
 {
 	int milli = m_time.elapsed();
@@ -213,7 +227,9 @@ void Robot::update()
 	m_robot->setY(newY);
 
 	updateRangeLines();
+	updateReflectances();
 	
+
 	m_time.restart();
 }
 
@@ -229,12 +245,57 @@ void Robot::updateRangeLines()
 	m_rightRange->setLine(intersectDistance(m_rightRange, 45.0));
 }
 
+
+
 template<typename T>
 T sign(T t)
 {
 	if(t < 0) return -1;
 	else if(t > 0) return 1;
 	return 0;
+}
+
+void Robot::updateReflectances()
+{
+	const double sensor_dist = 10;
+
+	// left reflectance update
+	const double radLeft = (m_robot->rotation() - 30) / 180.0 * M_PI;
+	const double leftSensorX = m_robot->x() + cos(radLeft) * sensor_dist;
+	const double leftSensorY = m_robot->y() + sin(radLeft) * sensor_dist;
+	m_leftReflectance = reflectanceReading(leftSensorX, leftSensorY);
+
+	// right reflectance update
+	const double radRight = (m_robot->rotation() + 30) / 180.0 * M_PI;
+	const double rightSensorX = m_robot->x() + cos(radRight) * sensor_dist;
+	const double rightSensorY = m_robot->y() + sin(radRight) * sensor_dist;
+	m_rightReflectance = reflectanceReading(rightSensorX, rightSensorY);
+}
+
+double Robot::reflectanceReading(double sensorX, double sensorY)
+{
+	double result = 0.0;
+	double weight = 1.0 / num_pts;
+	double spiral_scale = 2.0;
+
+	QGraphicsScene *scene = m_leftRange->scene();
+
+	for (int i = 0; i < num_pts; i++){
+		double spiralX = spiral_xs[i]*spiral_scale + sensorX;
+		double spiralY = spiral_ys[i]*spiral_scale + sensorY;
+
+		QRectF r(QPoint(spiralX, spiralY), QSize(1,1));
+
+		QList<QGraphicsItem *> items = scene->items(r, Qt::IntersectsItemBoundingRect, Qt::AscendingOrder);
+		foreach(QGraphicsItem *t, items) {
+			if(t->data(0) == BoardFile::Real) {
+				result += weight;
+				continue;
+			}
+		}
+	}
+
+	return result;
 }
 
 QLineF Robot::intersectDistance(QGraphicsLineItem *item, const double &baseAngle) const

@@ -294,10 +294,10 @@ void MainWindow::update()
 	s.t[analogs[1]] = m_robot->frontRange() / m_robot->rangeLength() * 1023.0;
 	s.t[analogs[2]] = m_robot->rightRange() / m_robot->rangeLength() * 1023.0;
 	
-	// TODO: Untested
-	setDigital(0, s.t[analogs[0]] < 100);
-	setDigital(1, s.t[analogs[2]] < 100);
 	
+	setDigital(0, s.t[analogs[0]] < 150);
+	setDigital(1, s.t[analogs[2]] < 150);
+
 	const double lRad = M_PI * (m_robot->robot()[0]->rotation() + 45.0) / 180.0;
 	const double rRad = M_PI * (m_robot->robot()[0]->rotation() - 45.0) / 180.0;
 
@@ -325,6 +325,10 @@ void MainWindow::update()
 		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "0" : "1");
 	}
 	
+	s.t[analogs[5]] = m_robot->leftReflectance() * 1023.0;
+	s.t[analogs[6]] = m_robot->rightReflectance() * 1023.0;
+
+
 	ui->scrollArea->update();
 }
 

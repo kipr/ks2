@@ -28,7 +28,7 @@
 	title(sprintf('theta step: %f     r step: %f', theta_step, r_step));
 
 
-	disp(sprintf('static const int num_pts = %d',num_pts));
+	disp(sprintf('static const unsigned int num_pts = %d;',num_pts));
 
 	disp(sprintf('\n'));
 	disp(sprintf('double spiral_xs[num_pts] = {'));

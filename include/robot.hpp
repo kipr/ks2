@@ -42,6 +42,9 @@ public:
 	double frontRange() const;
 	double rightRange() const;
 	
+	double leftReflectance() const;
+	double rightReflectance() const;
+
 	void update();
 
 	QList<QGraphicsItem *> robot() const;
@@ -49,6 +52,10 @@ public:
 private:
 	void updateRangeLines();
 	
+	void updateReflectances();
+
+	double reflectanceReading(double sensorX, double sensorY);
+
 	QLineF intersectDistance(QGraphicsLineItem *item, const double &baseAngle) const;
 	
 	double m_wheelDiameter;
@@ -56,6 +63,9 @@ private:
 	double m_leftSpeed;
 	double m_rightSpeed;
 	double m_rangeLength;
+
+	double m_leftReflectance;
+	double m_rightReflectance;
 	
 	double m_leftTravelDistance;
 	double m_rightTravelDistance;

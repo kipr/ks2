@@ -1,4 +1,4 @@
-static const int num_pts = 50
+static const unsigned int num_pts = 50;
 
 
 double spiral_xs[num_pts] = {
