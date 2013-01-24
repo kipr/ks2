@@ -288,7 +288,7 @@ double Robot::reflectanceReading(double sensorX, double sensorY)
 
 		QList<QGraphicsItem *> items = scene->items(r, Qt::IntersectsItemBoundingRect, Qt::AscendingOrder);
 		foreach(QGraphicsItem *t, items) {
-			if(t->data(0) == BoardFile::Real) {
+			if(t->data(0) == BoardFile::Tape) {
 				result += weight;
 				continue;
 			}
