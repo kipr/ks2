@@ -234,7 +234,7 @@ void MainWindow::textChanged(::Button::Type::Id id, const QString &text)
 
 void MainWindow::update()
 {
-	if(!m_process) return;
+	//TODO: put back if(!m_process) return;
 	
 	m_buttonProvider->refresh();
 	m_robot->update();
@@ -250,22 +250,28 @@ void MainWindow::update()
 
 	unsigned short modes = s.t[PID_MODES];
 	for(int i = 0; i < 4; ++i) {
-		unsigned char mode = modes >> ((3 - i) << 1);
+		unsigned char mode = (modes >> ((3 - i) * 2)) & 0x3;
 		double val = 0.0;
 		bool pwm = false;
-		if(mode == 0) { // pwm
-			int code = (s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2)) & 0x3;
+		int code = 0;
+
+		switch(mode){
+		case 0: // pwm
+			code = (s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2)) & 0x3;
 			val = s.t[MOTOR_PWM_0 + i] / 2600.0;
 			if(code == 1) val = -val;
 			else if(code != 2) val = 0.0;
 			pwm = true;
 			if(val > 1.0) val = 1.0;
-		} else if(mode == 2) { // speed
+			break;
+		case 1: // position
+			break;
+		case 2: // speed
 			val = (s.t[(GOAL_SPEED_0_HIGH + i)] << 16 | s.t[(GOAL_SPEED_0_LOW + i)]) / 1000.0;
-		} else if(mode == 3) {
-			
+			break;
+		case 3: // position at speed
+			break;
 		}
-		
 		
 		const double m = 2.5;
 		int port = unfixPort(i);
@@ -328,6 +334,7 @@ void MainWindow::update()
 	s.t[analogs[5]] = m_robot->leftReflectance() * 1023.0;
 	s.t[analogs[6]] = m_robot->rightReflectance() * 1023.0;
 
+	s.t[BEMF_0_HIGH] <<
 
 	ui->scrollArea->update();
 }
