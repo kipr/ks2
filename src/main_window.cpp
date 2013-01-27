@@ -234,12 +234,13 @@ void MainWindow::textChanged(::Button::Type::Id id, const QString &text)
 
 void MainWindow::update()
 {
-	//TODO: put back if(!m_process) return;
+	if(!m_process) return;
 	
 	m_buttonProvider->refresh();
 	m_robot->update();
 	
 	Kovan::State &s = m_kmod->state();
+
 
 	static const int motors[4] = {
 		MOTOR_PWM_0,
@@ -249,14 +250,34 @@ void MainWindow::update()
 	};
 
 	unsigned short modes = s.t[PID_MODES];
+
+	static const int GOAL_EPSILON = 20;
+	static const int MOTOR_SCALE = 500;
+
 	for(int i = 0; i < 4; ++i) {
+
 		unsigned char mode = (modes >> ((3 - i) * 2)) & 0x3;
 		double val = 0.0;
 		bool pwm = false;
 		int code = 0;
 
+		int pos_goal = ((int)s.t[GOAL_POS_0_HIGH + i] << 16) | s.t[GOAL_POS_0_LOW + i];
+		int pos_err = 0;
+
+		// TODO: are left/right switched?
+		if (i == 1){
+			 pos_err = pos_goal - MOTOR_SCALE*(int)m_robot->rightTravelDistance();
+		}else if (i == 3){
+			 pos_err = pos_goal - MOTOR_SCALE*(int)m_robot->leftTravelDistance();
+		}
+
+
+		int desired_speed = s.t[(GOAL_SPEED_0_HIGH + i)] << 16 | s.t[(GOAL_SPEED_0_LOW + i)];
+
 		switch(mode){
+
 		case 0: // pwm
+
 			code = (s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2)) & 0x3;
 			val = s.t[MOTOR_PWM_0 + i] / 2600.0;
 			if(code == 1) val = -val;
@@ -264,12 +285,39 @@ void MainWindow::update()
 			pwm = true;
 			if(val > 1.0) val = 1.0;
 			break;
+
 		case 1: // position
+
+			if ((pos_err > 0 && pos_err < GOAL_EPSILON)
+							|| (pos_err < 0 && pos_err > -GOAL_EPSILON)){
+				val = 0.0;
+			}else{
+
+				val = pos_err / 2000.0;
+
+				if (val > 1.0){
+					val = 1.0;
+				}else if (val < -1.0){
+					val = -1.0;
+				}
+			}
 			break;
+
 		case 2: // speed
-			val = (s.t[(GOAL_SPEED_0_HIGH + i)] << 16 | s.t[(GOAL_SPEED_0_LOW + i)]) / 1000.0;
+
+			val = (desired_speed) / 1000.0;
 			break;
+
 		case 3: // position at speed
+
+			if ((pos_err > 0 && pos_err < GOAL_EPSILON)
+							|| (pos_err < 0 && pos_err > -GOAL_EPSILON)
+							|| (pos_err < 0 && desired_speed > 0)
+							|| (pos_err > 0 && desired_speed < 0)){
+				val = 0.0;
+			}else{
+				val = (desired_speed) / 1000.0;
+			}
 			break;
 		}
 		
@@ -333,8 +381,6 @@ void MainWindow::update()
 	
 	s.t[analogs[5]] = m_robot->leftReflectance() * 1023.0;
 	s.t[analogs[6]] = m_robot->rightReflectance() * 1023.0;
-
-	s.t[BEMF_0_HIGH] <<
 
 	ui->scrollArea->update();
 }
