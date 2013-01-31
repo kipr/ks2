@@ -226,6 +226,7 @@ void Robot::update()
 	m_robot->setX(newX);
 	m_robot->setY(newY);
 
+
 	updateRangeLines();
 	updateReflectances();
 	

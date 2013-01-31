@@ -241,6 +241,7 @@ void MainWindow::update()
 	
 	Kovan::State &s = m_kmod->state();
 
+
 	static const int motors[4] = {
 		MOTOR_PWM_0,
 		MOTOR_PWM_1,
@@ -249,23 +250,76 @@ void MainWindow::update()
 	};
 
 	unsigned short modes = s.t[PID_MODES];
+
+	static const int GOAL_EPSILON = 20;
+	static const int MOTOR_SCALE = 500;
+
 	for(int i = 0; i < 4; ++i) {
-		unsigned char mode = modes >> ((3 - i) << 1);
+
+		unsigned char mode = (modes >> ((3 - i) * 2)) & 0x3;
 		double val = 0.0;
 		bool pwm = false;
-		if(mode == 0) { // pwm
-			int code = (s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2)) & 0x3;
+		int code = 0;
+
+		int pos_goal = ((int)s.t[GOAL_POS_0_HIGH + i] << 16) | s.t[GOAL_POS_0_LOW + i];
+		int pos_err = 0;
+
+		// TODO: are left/right switched?
+		if (i == 1){
+			 pos_err = pos_goal - MOTOR_SCALE*(int)m_robot->rightTravelDistance();
+		}else if (i == 3){
+			 pos_err = pos_goal - MOTOR_SCALE*(int)m_robot->leftTravelDistance();
+		}
+
+
+		int desired_speed = s.t[(GOAL_SPEED_0_HIGH + i)] << 16 | s.t[(GOAL_SPEED_0_LOW + i)];
+
+		switch(mode){
+
+		case 0: // pwm
+
+			code = (s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2)) & 0x3;
 			val = s.t[MOTOR_PWM_0 + i] / 2600.0;
 			if(code == 1) val = -val;
 			else if(code != 2) val = 0.0;
 			pwm = true;
 			if(val > 1.0) val = 1.0;
-		} else if(mode == 2) { // speed
-			val = (s.t[(GOAL_SPEED_0_HIGH + i)] << 16 | s.t[(GOAL_SPEED_0_LOW + i)]) / 1000.0;
-		} else if(mode == 3) {
-			
+			break;
+
+		case 1: // position
+
+			if ((pos_err > 0 && pos_err < GOAL_EPSILON)
+							|| (pos_err < 0 && pos_err > -GOAL_EPSILON)){
+				val = 0.0;
+			}else{
+
+				val = pos_err / 2000.0;
+
+				if (val > 1.0){
+					val = 1.0;
+				}else if (val < -1.0){
+					val = -1.0;
+				}
+			}
+			break;
+
+		case 2: // speed
+
+			val = (desired_speed) / 1000.0;
+			break;
+
+		case 3: // position at speed
+
+			if ((pos_err > 0 && pos_err < GOAL_EPSILON)
+							|| (pos_err < 0 && pos_err > -GOAL_EPSILON)
+							|| (pos_err < 0 && desired_speed > 0)
+							|| (pos_err > 0 && desired_speed < 0)){
+				val = 0.0;
+			}else{
+				val = (desired_speed) / 1000.0;
+			}
+			break;
 		}
-		
 		
 		const double m = 2.5;
 		int port = unfixPort(i);
@@ -327,7 +381,6 @@ void MainWindow::update()
 	
 	s.t[analogs[5]] = m_robot->leftReflectance() * 1023.0;
 	s.t[analogs[6]] = m_robot->rightReflectance() * 1023.0;
-
 
 	ui->scrollArea->update();
 }
