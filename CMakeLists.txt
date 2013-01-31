@@ -39,7 +39,7 @@ ELSEIF(UNIX)
 	ADD_EXECUTABLE(ks2 ${SOURCES})
 ELSEIF(WIN32)
 	add_definitions("-Wl,--enable-auto-import")
-	ADD_EXECUTABLE(ks2 ${SOURCES} ${CMAKE_SOURCE_DIR}/compat/mingw.c)
+	ADD_EXECUTABLE(ks2 WIN32 ${SOURCES} ${CMAKE_SOURCE_DIR}/compat/mingw.c)
 	target_link_libraries(ks2 ws2_32)
 ENDIF()
 
