@@ -232,6 +232,14 @@ void MainWindow::textChanged(::Button::Type::Id id, const QString &text)
 	}
 }
 
+#define TIMEDIV (1.0 / 13000000) // 13 MHz clock
+#define PWM_PERIOD_RAW 0.02F
+#define SERVO_MAX_RAW 0.0025f
+#define SERVO_MIN_RAW 0.0005f
+#define PWM_PERIOD ((unsigned int)(PWM_PERIOD_RAW / TIMEDIV))
+#define SERVO_MAX (SERVO_MAX_RAW / TIMEDIV)
+#define SERVO_MIN (SERVO_MIN_RAW / TIMEDIV)
+
 void MainWindow::update()
 {
 	if(!m_process) return;
@@ -247,6 +255,13 @@ void MainWindow::update()
 		MOTOR_PWM_1,
 		MOTOR_PWM_2,
 		MOTOR_PWM_3
+	};
+	
+	static const int servos[4] = {
+		SERVO_COMMAND_0,
+		SERVO_COMMAND_1,
+		SERVO_COMMAND_2,
+		SERVO_COMMAND_3
 	};
 
 	unsigned short modes = s.t[PID_MODES];
@@ -330,7 +345,7 @@ void MainWindow::update()
 		}
 		
 		m_motors[port]->setValue(val * 100.0);
-		// m_servos[i]->setValue();
+		m_servos[i]->setValue(2048.0 * ((s.t[servos[i]] << 8) - SERVO_MIN) / (SERVO_MAX - SERVO_MIN));
 	}
 	
 	static const int analogs[8] = {
