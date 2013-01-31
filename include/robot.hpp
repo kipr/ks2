@@ -79,6 +79,8 @@ private:
 	QGraphicsLineItem *m_leftRange;
 	QGraphicsLineItem *m_frontRange;
 	QGraphicsLineItem *m_rightRange;
+	
+	QGraphicsEllipseItem *m_front;
 };
 
 #endif

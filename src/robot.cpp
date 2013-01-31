@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <QGraphicsSceneMouseEvent>
+#include <QKeyEvent>
 
 #include "kovan_spiral-inl.hpp"
 
@@ -24,8 +25,10 @@ class RobotBase : public QGraphicsRectItem
 public:
 	RobotBase(double x, double y, double w, double h)
 		: QGraphicsRectItem(x, y, w, h),
-		m_grabbed(false)
+		m_grabbed(false),
+		m_turnEvent(false)
 	{
+		setFlag(QGraphicsItem::ItemIsFocusable);
 	}
 	
 protected:
@@ -38,7 +41,12 @@ protected:
 	virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 	{
 		if(!m_grabbed) return;
-		setPos(event->scenePos());
+		if(!m_turnEvent) {
+			setPos(event->scenePos());
+		} else {
+			QLineF line(pos(), event->scenePos());
+			setRotation(360 - line.angle());
+		}
 	}
 	
 	virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -46,8 +54,23 @@ protected:
 		m_grabbed = false;
 	}
 	
+	virtual void keyPressEvent(QKeyEvent *event)
+	{
+		m_turnEvent = event->modifiers() & Qt::ShiftModifier;
+		if(m_turnEvent) event->accept();
+		else event->ignore();
+	}
+	
+	virtual void keyReleaseEvent(QKeyEvent *event)
+	{
+		m_turnEvent = event->modifiers() & Qt::ShiftModifier;
+		if(m_turnEvent) event->accept();
+		else event->ignore();
+	}
+	
 private:
 	bool m_grabbed;
+	bool m_turnEvent;
 };
 
 Robot::Robot()
@@ -63,9 +86,11 @@ Robot::Robot()
 	m_rightWheel(new QGraphicsEllipseItem(-m_wheelRadii, m_wheelDiameter / 2.0, m_wheelRadii * 2, m_wheelRadii)),
 	m_leftRange(new QGraphicsLineItem()),
 	m_frontRange(new QGraphicsLineItem()),
-	m_rightRange(new QGraphicsLineItem())
+	m_rightRange(new QGraphicsLineItem()),
+	m_front(new QGraphicsEllipseItem(m_wheelDiameter / 8.0, -m_wheelDiameter / 10.0, m_wheelDiameter / 5.0, m_wheelDiameter / 5.0))
 {
 	m_robot->setData(0, BoardFile::Fake);
+	m_front->setParentItem(m_robot);
 	m_leftWheel->setData(0, BoardFile::Fake);
 	m_rightWheel->setData(0, BoardFile::Fake);
 	m_robot->setBrush(Qt::lightGray);
@@ -104,6 +129,7 @@ Robot::~Robot()
 	delete m_leftRange;
 	delete m_frontRange;
 	delete m_rightRange;
+	delete m_front;
 }
 
 void Robot::setWheelDiameter(const double &wheelDiameter)
