@@ -129,7 +129,7 @@ Robot::~Robot()
 	delete m_leftRange;
 	delete m_frontRange;
 	delete m_rightRange;
-	delete m_front;
+	// delete m_front;
 }
 
 void Robot::setWheelDiameter(const double &wheelDiameter)
