@@ -97,14 +97,14 @@ void TouchDial::paintEvent(QPaintEvent *)
 	p.setPen(Qt::black);
 	p.setBrush(Qt::black);
 	QFont font = p.font();
-	font.setPixelSize(r / 4);
+	font.setPixelSize(r / 3);
 	p.setFont(font);
 	
 	// This is to get rid of "-0" nonsense
 	double printValue = m_value;
 	if(printValue < 0.0 && printValue >= -0.5) printValue = 0.0;
 	
-	p.drawText(xoff + r * 0.6 + 0.5, yoff + r * 1.4 + 0.5, r * 0.8, r * 0.4,
+	p.drawText(xoff + r * 0.4 + 0.5, yoff + r * 1.3 + 0.5, r * 1.2, r * 0.6,
 		Qt::AlignHCenter | Qt::AlignVCenter, QString().sprintf("%.0f", printValue));
 	
 	if(m_label != 0xFFFF) {
@@ -191,8 +191,8 @@ void TouchDial::updateDial()
 	p.setBrush(Qt::red);
 	
 	const double angle = valueToAngle((m_value - m_minimumValue) / (m_maximumValue - m_minimumValue));
-	p.setPen(QPen(Qt::red, r / 15));
+	p.setPen(QPen(Qt::red, r / 12));
 	p.drawLine(xoff + r, yoff + r, xoff + r * (1 + cos(angle)), yoff + r * (1 + sin(angle)));
-	p.setPen(QPen(Qt::white, r / 25));
+	p.setPen(QPen(Qt::white, r / 20));
 	p.drawEllipse(QPoint(xoff + r, yoff + r), r / 4, r / 4);
 }

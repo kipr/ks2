@@ -65,16 +65,16 @@ MainWindow::MainWindow(QWidget *parent)
 	m_analogs[4] = ui->analog4;
 	m_analogs[5] = ui->analog5;
 	m_analogs[6] = ui->analog6;
-	m_analogs[7] = ui->analog7;
+	// m_analogs[7] = ui->analog7;
 	
 	m_digitals[0] = ui->digital0;
 	m_digitals[1] = ui->digital1;
-	m_digitals[2] = ui->digital2;
-	m_digitals[3] = ui->digital3;
-	m_digitals[4] = ui->digital4;
-	m_digitals[5] = ui->digital5;
-	m_digitals[6] = ui->digital6;
-	m_digitals[7] = ui->digital7;
+	// m_digitals[2] = ui->digital2;
+	// m_digitals[3] = ui->digital3;
+	// m_digitals[4] = ui->digital4;
+	// m_digitals[5] = ui->digital5;
+	// m_digitals[6] = ui->digital6;
+	// m_digitals[7] = ui->digital7;
 	
 	m_motors[0] = ui->motor0;
 	m_motors[1] = ui->motor1;
@@ -390,8 +390,8 @@ void MainWindow::update()
 	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 1023.0;
 
 	for(int i = 0; i < 8; ++i) {
-		m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
-		m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "0" : "1");
+		if(i < 7) m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
+		if(i < 2) m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "0" : "1");
 	}
 	
 	s.t[analogs[5]] = m_robot->leftReflectance() * 1023.0;
