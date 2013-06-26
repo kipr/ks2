@@ -99,7 +99,7 @@ Compiler::OutputList CompileWorker::compile()
 	
 	Engine engine(Compilers::instance()->compilers());
 	Options opts = Options::load(QDir::current().filePath("platform.hints"));
-	opts.replace("${PREFIX}", QDir::currentPath() + "/prefix");
+	opts.setVariable("${PREFIX}", QDir::currentPath() + "/prefix");
 	Compiler::OutputList ret = engine.compile(Input::fromList(extracted), opts, this);
 	
 	QStringList terminals;
