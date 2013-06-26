@@ -12,5 +12,9 @@
 	<string>????</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.kipr.ks2</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
 </dict>
 </plist>
