@@ -2,7 +2,7 @@ project(ks2)
 
 cmake_minimum_required(VERSION 2.8.0)
 
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt4 REQUIRED)
 
 set(INCLUDE ${CMAKE_SOURCE_DIR}/include)
 set(SRC ${CMAKE_SOURCE_DIR}/src)
