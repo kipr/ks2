@@ -16,13 +16,15 @@ file(GLOB SOURCES ${SRC}/*.cpp)
 file(GLOB UIS ${UI}/*.ui)
 file(GLOB RCS ${RC}/*.qrc)
 
+include(${QT_USE_FILE})
+
 qt4_wrap_cpp(SOURCES ${INCLUDES})
 qt4_wrap_ui(SOURCES ${UIS})
 qt4_add_resources(SOURCES ${RCS})
 
 IF(WIN32)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/../prefix/include)
-LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/../prefix/lib)
+  INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/../prefix/include)
+  LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/../prefix/lib)
 ENDIF(WIN32)
 
 IF(APPLE)
