@@ -1,8 +1,8 @@
 project(ks2)
 
-cmake_minimum_required(VERSION 2.6.0)
+cmake_minimum_required(VERSION 2.8.0)
 
-find_package(Qt4 REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
 set(INCLUDE ${CMAKE_SOURCE_DIR}/include)
 set(SRC ${CMAKE_SOURCE_DIR}/src)
@@ -15,10 +15,6 @@ file(GLOB INCLUDES ${INCLUDE}/*.hpp)
 file(GLOB SOURCES ${SRC}/*.cpp)
 file(GLOB UIS ${UI}/*.ui)
 file(GLOB RCS ${RC}/*.qrc)
-
-set(QT_USE_QTNETWORK TRUE)
-
-include(${QT_USE_FILE})
 
 qt4_wrap_cpp(SOURCES ${INCLUDES})
 qt4_wrap_ui(SOURCES ${UIS})
