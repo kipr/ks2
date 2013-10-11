@@ -5,7 +5,7 @@
 #include <QString>
 #include <QThread>
 
-#include <kar.hpp>
+#include <kar/kar.hpp>
 #include <kovanserial/transport_layer.hpp>
 
 class TcpServer;
@@ -35,7 +35,7 @@ private:
 	TransportLayer *m_transport;
 	KovanSerial *m_proto;
 	
-	Kiss::KarPtr m_archive;
+	kiss::KarPtr m_archive;
 	QString m_executable;
 	// This is just used for verification
 	QString m_archiveLocation;

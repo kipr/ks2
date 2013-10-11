@@ -81,9 +81,9 @@ void ServerThread::handleArchive(const Packet &headerPacket)
 	QByteArray arr(data.c_str(), data.size());
 	QDataStream stream(arr);
 	
-	Kiss::Kar *archive = new Kiss::Kar();
+	kiss::Kar *archive = new kiss::Kar();
 	stream >> *archive;
-	m_archive = Kiss::KarPtr(archive);
+	m_archive = kiss::KarPtr(archive);
 	m_archiveLocation = header.dest;
 	qDebug() << "archiveLocation" << m_archiveLocation;
 	m_executable = QString();
