@@ -16,6 +16,8 @@ file(GLOB SOURCES ${SRC}/*.cpp)
 file(GLOB UIS ${UI}/*.ui)
 file(GLOB RCS ${RC}/*.qrc)
 
+set(QT_USE_QTNETWORK TRUE)
+
 include(${QT_USE_FILE})
 
 qt4_wrap_cpp(SOURCES ${INCLUDES})
