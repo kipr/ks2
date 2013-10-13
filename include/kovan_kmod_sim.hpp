@@ -20,6 +20,7 @@
 #define _KOVAN_KMOD_SIM_HPP_
 
 #include <QObject>
+#include <QTime>
 
 #include "kovan_protocol_p.hpp"
 

@@ -35,6 +35,7 @@ class Robot;
 class Light;
 class Heartbeat;
 class ServerThread;
+class MappingModel;
 
 namespace Kovan
 {
@@ -60,6 +61,9 @@ private slots:
 	
 	void run(const QString &executable);
 	void stop();
+  
+  void updatePorts();
+  void configPorts();
 	
 private:
 	void updateAdvert();
@@ -68,8 +72,8 @@ private:
 	
 	Ui::MainWindow *ui;
 	
-	QLabel *m_analogs[8];
-	QLabel *m_digitals[8];
+  MappingModel *_analogs;
+  MappingModel *_digitals;
 	TouchDial *m_motors[4];
 	TouchDial *m_servos[4];
 	Robot *m_robot;

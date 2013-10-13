@@ -20,6 +20,7 @@
 #include "kovan_regs_p.hpp"
 
 #include <QUdpSocket>
+#include <QThread>
 
 #define NUM_RW_REGS 19
 #define RO_REG_OFFSET 0
@@ -57,7 +58,7 @@ Kovan::KmodSim::~KmodSim()
 
 bool Kovan::KmodSim::setup()
 {
-	return m_socket->bind(QHostAddress::LocalHost, 5555, QUdpSocket::ReuseAddressHint);
+	return m_socket->bind(QHostAddress::LocalHost, 4628, QUdpSocket::ReuseAddressHint);
 }
 
 void Kovan::KmodSim::reset()
@@ -83,7 +84,6 @@ Kovan::State &Kovan::KmodSim::state()
 
 void Kovan::KmodSim::readyRead()
 {
-
 	while(m_socket->hasPendingDatagrams()) {
 		QByteArray datagram;
 		datagram.resize(m_socket->pendingDatagramSize());

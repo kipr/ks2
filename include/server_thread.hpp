@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QThread>
+#include <QRunnable>
 
 #include <kar/kar.hpp>
 #include <kovanserial/transport_layer.hpp>
@@ -11,7 +11,7 @@
 class TcpServer;
 class KovanSerial;
 
-class ServerThread : public QThread
+class ServerThread : public QObject, public QRunnable
 {
 Q_OBJECT
 public:
@@ -21,12 +21,18 @@ public:
 	void stop();
 	virtual void run();
 	
+	void setUserRoot(const QString &userRoot);
+	const QString &userRoot() const;
+	
+	void setPassword(const QString &password);
+	
 signals:
 	void stateChanged(const QString &state);
 	void run(const QString &executable);
 	
 private:
 	bool handle(const Packet &p);
+	bool handleUntrusted(const Packet &p);
 	void handleArchive(const Packet &headerPacket);
 	void handleAction(const Packet &action);
 	
@@ -35,10 +41,8 @@ private:
 	TransportLayer *m_transport;
 	KovanSerial *m_proto;
 	
-	kiss::KarPtr m_archive;
-	QString m_executable;
-	// This is just used for verification
-	QString m_archiveLocation;
+	QString m_userRoot;
+	QString m_password;
 };
 
 #endif

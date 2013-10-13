@@ -13,6 +13,13 @@
 #include <iostream>
 #include <sstream>
 
+#include <pcompiler/pcompiler.hpp>
+#include <QDir>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 ServerThread::ServerThread(TcpServer *server)
 	: m_stop(false),
 	m_server(server),
@@ -37,19 +44,61 @@ void ServerThread::run()
 {
 	Packet p;
 	while(!m_stop) {
-		QThread::msleep(100);
+#ifdef Q_OS_WIN
+		Sleep(1000);
+#else
+		sleep(1);
+#endif
+		QThread::yieldCurrentThread();
 		if(!m_server->accept(3)) continue;
-		qDebug() << "Got connection";
-		while(m_proto->next(p, 5000) && handle(p));
+		for(;;) {
+			const TransportLayer::Return ret = m_proto->next(p, 5000);
+			if(ret == TransportLayer::Success && handle(p)) continue;
+			if(ret == TransportLayer::UntrustedSuccess && handleUntrusted(p)) continue;
+			break;
+		}
 	}
+}
+
+void ServerThread::setUserRoot(const QString &userRoot)
+{
+	m_userRoot = userRoot;
+}
+
+const QString &ServerThread::userRoot() const
+{
+	return m_userRoot;
+}
+
+void ServerThread::setPassword(const QString &password)
+{
+	if(password.isEmpty()) m_proto->setNoPassword();
+	else m_proto->setPassword(password.toStdString());
 }
 
 bool ServerThread::handle(const Packet &p)
 {
-	qDebug() << "got packet of type" << p.type;
-	if(p.type == Command::FileHeader) handleArchive(p);
+	if(p.type == Command::KnockKnock) m_proto->whosThere();
+	else if(p.type == Command::RequestProtocolVersion) m_proto->sendProtocolVersion();
+	else if(p.type == Command::FileHeader) handleArchive(p);
 	else if(p.type == Command::FileAction) handleAction(p);
 	else if(p.type == Command::Hangup) return false;
+	return true;
+}
+
+bool ServerThread::handleUntrusted(const Packet &p)
+{
+	if(p.type == Command::KnockKnock) m_proto->whosThere();
+	else if(p.type == Command::RequestProtocolVersion) m_proto->sendProtocolVersion();
+	else if(p.type == Command::RequestAuthenticationInfo) {
+		m_proto->sendAuthenticationInfo(m_proto->isPassworded());
+	} else if(p.type == Command::RequestAuthentication) {
+		Command::RequestAuthenticationData data;
+		p.as(data);
+		const bool valid = memcmp(data.password, m_proto->passwordMd5(), 16) == 0;
+		m_proto->confirmAuthentication(valid);
+	} else if(p.type == Command::Hangup) return false;
+	else if(m_password.isEmpty()) return handle(p);
 	return true;
 }
 
@@ -59,7 +108,10 @@ void ServerThread::handleArchive(const Packet &headerPacket)
 	
 	Command::FileHeaderData header;
 	headerPacket.as(header);
-	const bool good = QString(header.metadata) == "kar";
+	const QString name = header.dest;
+	const bool good = QString(header.metadata) == "kar"
+		&& !name.isEmpty()
+		&& !m_userRoot.isEmpty();
 	
 	std::ostringstream file(std::ios::binary);
 
@@ -74,59 +126,82 @@ void ServerThread::handleArchive(const Packet &headerPacket)
 	}
 	
 	quint64 end = msystime();
+	qDebug() << "Header size: " << header.size;
 	qDebug() << "Took" << (end - start) << "milliseconds to recv";
 	
+	// Load up the archive
+	kiss::Kar *archive = new kiss::Kar();
 	std::string data = file.str();
-	
 	QByteArray arr(data.c_str(), data.size());
 	QDataStream stream(arr);
-	
-	kiss::Kar *archive = new kiss::Kar();
 	stream >> *archive;
-	m_archive = kiss::KarPtr(archive);
-	m_archiveLocation = header.dest;
-	qDebug() << "archiveLocation" << m_archiveLocation;
-	m_executable = QString();
+	if(!QDir(m_userRoot + "/archives").exists()) QDir(m_userRoot + "/archives").mkpath(".");
+	if(!archive->save(QDir(m_userRoot + "/archives").filePath(name))) {
+		qWarning() << "Failed to save archive to " << QDir(m_userRoot + "/archives").filePath(name);
+	}
+	delete archive;
 
 	emit stateChanged(tr("Received Program."));
 }
 
 void ServerThread::handleAction(const Packet &action)
 {
+	using namespace Compiler;
+	
 	Command::FileActionData data;
 	action.as(data);
-	// Check that the archive we have is the one that KISS
-	// wants us to act on.
-	const bool good = m_archiveLocation == data.dest;
-	if(!m_proto->confirmFileAction(good)) return;
-	if(!good) return;
+	const QString type = data.action;
+	const QString name = data.dest;
 	
-	QString type = data.action;
+	const bool good = !name.isEmpty();
+	if(!m_proto->confirmFileAction(good) || !good) return;
 
 	if(type == COMMAND_ACTION_COMPILE) {
-		CompileWorker *worker = new CompileWorker(m_archive, m_proto, this);
-		worker->start();
-		worker->wait();
+		const QString archivePath = m_userRoot + "/archives/" + name;
+		const kiss::KarPtr archive = kiss::Kar::load(archivePath);
 		
-		qDebug() << "Sending results...";
+		QFile file(":/target.c");
+		if(!file.open(QIODevice::ReadOnly)) {
+			qWarning() << "Failed to inject target.c";
+		} else {
+			archive->setFile("__internal_target___.c", file.readAll());
+			file.close();
+		}
+		
+		
+		OutputList output;
+		CompileWorker *worker = 0;
+		if(!archive.isNull()) {
+			worker = new CompileWorker(archive, m_proto, this);
+			worker->setUserRoot(m_userRoot);
+			worker->start();
+			worker->wait();
+			output = worker->output();
+		} else {
+			qDebug() << "Failed to load archive";
+			output << Output(archivePath, 1, QByteArray(),
+				"error: unable to load archive to extract");
+			m_proto->sendFileActionProgress(true, 1.0);
+		}
+		
+		output << RootManager(m_userRoot).install(output, name);
+				
+		if(worker) worker->cleanup();
+		
 		QByteArray data;
 		QDataStream stream(&data, QIODevice::WriteOnly);
-		stream << worker->output();
+		stream << output;
 		
 		std::istringstream sstream;
 		sstream.rdbuf()->pubsetbuf(data.data(), data.size());
-		if(!m_proto->sendFile("", "col", &sstream)) {
+		if(!m_proto->sendFile("", "col", (unsigned char *)data.data(), data.size())) {
 			qWarning() << "Sending result failed";
 			return;
 		}
 		
-		const QString &resultPath = worker->resultPath();
-		if(resultPath.isEmpty()) return;
-		
-		m_executable = resultPath;
+		delete worker;
 	} else if(type == COMMAND_ACTION_RUN) {
 		m_proto->sendFileActionProgress(true, 1.0);
-		if(m_executable.isEmpty()) return;
-		emit run(m_executable);
+		emit run(name);
 	}
 }

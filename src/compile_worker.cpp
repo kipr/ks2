@@ -53,7 +53,6 @@ CompileWorker::CompileWorker(const kiss::KarPtr &archive, KovanSerial *proto, QO
 
 void CompileWorker::run()
 {
-	m_resultPath = QString();
 	m_output = compile();
 	
 	qDebug() << "Sending finish!";
@@ -67,9 +66,14 @@ const Compiler::OutputList &CompileWorker::output() const
 	return m_output;
 }
 
-const QString &CompileWorker::resultPath() const
+void CompileWorker::setUserRoot(const QString &userRoot)
 {
-	return m_resultPath;
+	m_userRoot = userRoot;
+}
+
+const QString &CompileWorker::userRoot() const
+{
+	return m_userRoot;
 }
 
 void CompileWorker::progress(double fraction)
@@ -85,63 +89,33 @@ Compiler::OutputList CompileWorker::compile()
 	using namespace Compiler;
 	using namespace kiss;
 
-	QString path = tempPath();
-	qDebug() << "Extracting to" << path;
-	
-	Cleaner cleaner(path);
-	if(!m_archive->extract(path)) {
-		return OutputList() << Output(path, 1,
-			QByteArray(), "error: Failed to extract KISS Archive.");
+	// Extract the archive to a temporary directory
+	m_tempDir = tempPath();
+	if(!m_archive->extract(m_tempDir)) {
+		return OutputList() << Output(m_tempDir, 1,
+			QByteArray(), "error: failed to extract KISS Archive");
 	}
 	
 	QStringList extracted;
-	foreach(const QString& file, m_archive->files()) extracted << path + "/" + file;
-	
+	foreach(const QString &file, m_archive->files()) extracted << m_tempDir + "/" + file;
+	qDebug() << "Extracted" << extracted;
+
+	// Invoke pcompiler on the extracted files
 	Engine engine(Compilers::instance()->compilers());
 	Options opts = Options::load(QDir::current().filePath("platform.hints"));
-	opts.setVariable("${PREFIX}", QDir::currentPath() + "/prefix");
-	Compiler::OutputList ret = engine.compile(Input::fromList(extracted), opts, this);
+	opts.setVariable("${PREFIX}", QDir::current().filePath("prefix"));
+	opts.setVariable("${USER_ROOT}", m_userRoot);
+	opts.expand();
 	
-	QStringList terminals;
-	bool success = true;
-	foreach(const Output& out, ret) {
-		if(out.isTerminal() && out.generatedFiles().size() == 1) {
-			terminals << out.generatedFiles()[0];
-		}
-		qDebug() << out.output();
-		qDebug() << out.error();
-		success &= out.isSuccess();
-	}
-
-	if(!success) return ret;
-
-	if(terminals.isEmpty()) {
-		ret << Output(path, 1,
-			QByteArray(), "error: No terminals detected from compilation.");
-		return ret;
-	}
-	if(terminals.size() > 1) {
-		ret << Output(path, 0,
-			"warning: Terminal ambiguity in compilation. " 
-			"Running the ouput of this compilation is undefined.", QByteArray());
-	}
-
-	const QString cachedResult = QDir::tempPath() + "/computer_executable";
-	QFile::remove(cachedResult);
-	qDebug() << cachedResult;
-	if(!QFile::copy(terminals[0], cachedResult)) {
-		ret << OutputList() << Output(path, 1,
-			QByteArray(), ("error: Failed to copy \"" + terminals[0]
-			+ "\" to \"" + cachedResult + "\"").toLatin1());
-		return ret;
-	}
-	
-	m_resultPath = cachedResult;
-
-	return ret;
+	return engine.compile(Input::fromList(extracted), opts, this);
 }
 
 QString CompileWorker::tempPath()
 {
-	return QDir::tempPath() + "/" + QDateTime::currentDateTime().toString("yyMMddhhmmss") + ".simulator";
+	return QDir::tempPath() + "/" + QDateTime::currentDateTime().toString("yyMMddhhmmss") + ".ks2";
+}
+
+void CompileWorker::cleanup()
+{
+	Cleaner c(m_tempDir);
 }

@@ -92,6 +92,7 @@ void TouchDial::paintEvent(QPaintEvent *)
 	
 	QPainter p(this);
 	
+  p.setRenderHints(QPainter::Antialiasing);
 	p.drawPixmap(0, 0, m_dialPixmap);
 	
 	p.setPen(Qt::black);
@@ -181,8 +182,7 @@ void TouchDial::updateDial()
 	const int yoff = (h - d) / 2;
 	
 	QPainter p(&m_dialPixmap);
-	p.setRenderHint(QPainter::Antialiasing);
-	p.setRenderHint(QPainter::TextAntialiasing);
+	p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 	p.setPen(QPen(Qt::white, r / 25));
 	
 	p.setBrush(Qt::black);

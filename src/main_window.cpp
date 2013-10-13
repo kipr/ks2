@@ -28,6 +28,8 @@
 #include "server_thread.hpp"
 #include "kovan_regs_p.hpp"
 #include "heartbeat.hpp"
+#include "mapping_model.hpp"
+#include "port_configuration.hpp"
 
 #ifdef WIN32
 #include <winsock2.h>
@@ -36,6 +38,7 @@
 #include <kovanserial/kovan_serial.hpp>
 #include <kovanserial/tcp_server.hpp>
 #include <kovanserial/udp_advertiser.hpp>
+#include <pcompiler/root_manager.hpp>
 
 #include <QTimer>
 #include <QGraphicsItem>
@@ -49,33 +52,28 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent),
 	ui(new Ui::MainWindow),
-	m_robot(new Robot()),
-	m_light(new Light()),
+  _analogs(new MappingModel),
+  _digitals(new MappingModel),
+	m_robot(new Robot),
+	m_light(new Light),
 	m_buttonProvider(0),
 	m_kmod(new Kovan::KmodSim(this)),
 	m_heartbeat(new Heartbeat(this)),
 	m_process(0)
 {
 	ui->setupUi(this);
-	
-	m_analogs[0] = ui->analog0;
-	m_analogs[1] = ui->analog1;
-	m_analogs[2] = ui->analog2;
-	m_analogs[3] = ui->analog3;
-	m_analogs[4] = ui->analog4;
-	m_analogs[5] = ui->analog5;
-	m_analogs[6] = ui->analog6;
-	// m_analogs[7] = ui->analog7;
-	
-	m_digitals[0] = ui->digital0;
-	m_digitals[1] = ui->digital1;
-	// m_digitals[2] = ui->digital2;
-	// m_digitals[3] = ui->digital3;
-	// m_digitals[4] = ui->digital4;
-	// m_digitals[5] = ui->digital5;
-	// m_digitals[6] = ui->digital6;
-	// m_digitals[7] = ui->digital7;
-	
+  ui->sim->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+  
+  _analogs->setMapping(PortConfiguration::currentAnalogMapping(), QStringList()
+    << tr("Left Range") << tr("Middle Range") << tr("Right Range")
+    << tr("Left Light") << tr("Right Light") << tr("Left Reflectance")
+    << tr("Right Reflectance"));
+  _digitals->setMapping(PortConfiguration::currentDigitalMapping(), QStringList()
+    << tr("Left Bump") << tr("Right Bump"));
+  
+  ui->analogs->setModel(_analogs);
+  ui->digitals->setModel(_digitals);
+  
 	m_motors[0] = ui->motor0;
 	m_motors[1] = ui->motor1;
 	m_motors[2] = ui->motor2;
@@ -135,6 +133,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->actionQuit, SIGNAL(activated()), QCoreApplication::instance(), SLOT(quit()));
 	
 	connect(ui->actionReset, SIGNAL(activated()), SLOT(reset()));
+  
+  connect(ui->actionPortConfiguration, SIGNAL(activated()), SLOT(configPorts()));
 
 	bool ret = m_kmod->setup();
 	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
@@ -153,8 +153,10 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
 	}
 	m_server = new ServerThread(serial);
+  m_server->setUserRoot(QDir::tempPath());
 	connect(m_server, SIGNAL(run(QString)), SLOT(run(QString)));
-	m_server->start();
+	m_server->setAutoDelete(true);
+	QThreadPool::globalInstance()->start(m_server);
 	
 	m_buttonProvider = new Kovan::ButtonProvider(m_kmod, this);
 	ui->extras->connect(m_buttonProvider, SIGNAL(extraShownChanged(bool)), SLOT(setVisible(bool)));
@@ -171,8 +173,6 @@ MainWindow::~MainWindow()
 {
 	stop();
 	m_server->stop();
-	m_server->wait();
-	delete m_server;
 	delete m_robot;
 	delete ui;
 }
@@ -249,7 +249,6 @@ void MainWindow::update()
 	
 	Kovan::State &s = m_kmod->state();
 
-
 	static const int motors[4] = {
 		MOTOR_PWM_0,
 		MOTOR_PWM_1,
@@ -267,10 +266,9 @@ void MainWindow::update()
 	unsigned short modes = s.t[PID_MODES];
 
 	static const int GOAL_EPSILON = 20;
-	static const int MOTOR_SCALE = 500;
+	static const int MOTOR_SCALE  = 500;
 
 	for(int i = 0; i < 4; ++i) {
-
 		unsigned char mode = (modes >> ((3 - i) * 2)) & 0x3;
 		double val = 0.0;
 		bool pwm = false;
@@ -280,19 +278,13 @@ void MainWindow::update()
 		int pos_err = 0;
 
 		// TODO: are left/right switched?
-		if (i == 1){
-			 pos_err = pos_goal - MOTOR_SCALE*(int)m_robot->rightTravelDistance();
-		}else if (i == 3){
-			 pos_err = pos_goal - MOTOR_SCALE*(int)m_robot->leftTravelDistance();
-		}
-
+		if (i == 1) pos_err = pos_goal - MOTOR_SCALE * (int)m_robot->rightTravelDistance();
+		else if (i == 3) pos_err = pos_goal - MOTOR_SCALE * (int)m_robot->leftTravelDistance();
 
 		int desired_speed = s.t[(GOAL_SPEED_0_HIGH + i)] << 16 | s.t[(GOAL_SPEED_0_LOW + i)];
 
-		switch(mode){
-
+		switch(mode) {
 		case 0: // pwm
-
 			code = (s.t[MOTOR_DRIVE_CODE_T] >> ((3 - i) * 2)) & 0x3;
 			val = s.t[MOTOR_PWM_0 + i] / 2600.0;
 			if(code == 1) val = -val;
@@ -300,52 +292,38 @@ void MainWindow::update()
 			pwm = true;
 			if(val > 1.0) val = 1.0;
 			break;
-
 		case 1: // position
-
 			if ((pos_err > 0 && pos_err < GOAL_EPSILON)
-							|| (pos_err < 0 && pos_err > -GOAL_EPSILON)){
+					|| (pos_err < 0 && pos_err > -GOAL_EPSILON)) {
 				val = 0.0;
-			}else{
-
+			} else {
 				val = pos_err / 2000.0;
-
-				if (val > 1.0){
-					val = 1.0;
-				}else if (val < -1.0){
-					val = -1.0;
-				}
+				if (val > 1.0) val = 1.0;
+        else if (val < -1.0) val = -1.0;
 			}
 			break;
-
 		case 2: // speed
-
 			val = (desired_speed) / 1000.0;
 			break;
-
 		case 3: // position at speed
-
 			if ((pos_err > 0 && pos_err < GOAL_EPSILON)
-							|| (pos_err < 0 && pos_err > -GOAL_EPSILON)
-							|| (pos_err < 0 && desired_speed > 0)
-							|| (pos_err > 0 && desired_speed < 0)){
+					|| (pos_err < 0 && pos_err > -GOAL_EPSILON)
+					|| (pos_err < 0 && desired_speed > 0)
+					|| (pos_err > 0 && desired_speed < 0)){
 				val = 0.0;
-			}else{
+			} else {
 				val = (desired_speed) / 1000.0;
 			}
 			break;
 		}
 		
-		const double m = 2.5;
-		int port = unfixPort(i);
-		if(port == 2) {
-			m_robot->setLeftSpeed(val * (pwm ? m : 1.0));
-		} else if(port == 0) {
-			m_robot->setRightSpeed(val * (pwm ? m : 1.0));
-		}
-		
-		m_motors[port]->setValue(val * 100.0);
-		m_servos[i]->setValue(2048.0 * ((s.t[servos[i]] << 8) - SERVO_MIN) / (SERVO_MAX - SERVO_MIN));
+    const static double m = 2.5;
+    int port = unfixPort(i);
+    if(port == 2) m_robot->setLeftSpeed(val * (pwm ? m : 1.0));
+    else if(port == 0) m_robot->setRightSpeed(val * (pwm ? m : 1.0));
+
+    m_motors[port]->setValue(val * 100.0);
+    m_servos[i]->setValue((s.t[servos[port]] - 6500) * 2048 / 26000);
 	}
 	
 	static const int analogs[8] = {
@@ -358,46 +336,84 @@ void MainWindow::update()
 		AN_IN_6,
 		AN_IN_7
 	};
-	
-	s.t[analogs[0]] = m_robot->leftRange() / m_robot->rangeLength() * 1023.0;
-	s.t[analogs[1]] = m_robot->frontRange() / m_robot->rangeLength() * 1023.0;
-	s.t[analogs[2]] = m_robot->rightRange() / m_robot->rangeLength() * 1023.0;
-	
-	
-	setDigital(0, s.t[analogs[0]] < 150);
-	setDigital(1, s.t[analogs[2]] < 150);
+  
+  const QList<int> leftRangeKeys    = _analogs->mapping().keys(0);
+  const QList<int> frontRangeKeys   = _analogs->mapping().keys(1);
+  const QList<int> rightRangeKeys   = _analogs->mapping().keys(2);
+  const QList<int> leftLightKeys    = _analogs->mapping().keys(3);
+  const QList<int> rightLightKeys   = _analogs->mapping().keys(4);
+  const QList<int> leftReflectKeys  = _analogs->mapping().keys(5);
+  const QList<int> rightReflectKeys = _analogs->mapping().keys(6);
+  
+  const QList<int> leftBumpKeys  = _digitals->mapping().keys(0);
+  const QList<int> rightBumpKeys = _digitals->mapping().keys(1);
+  
+  if(!leftRangeKeys.isEmpty()) {
+    const unsigned leftRange = m_robot->leftRange() / m_robot->rangeLength() * 1023.0;
+    foreach(const int port, leftRangeKeys) s.t[analogs[port]] = leftRange;
+  }
+  
+  if(!frontRangeKeys.isEmpty()) {
+    const unsigned frontRange = m_robot->frontRange() / m_robot->rangeLength() * 1023.0;
+    foreach(const int port, frontRangeKeys) s.t[analogs[port]] = frontRange;
+  }
+  
+  if(!rightRangeKeys.isEmpty()) {
+    const unsigned rightRange = m_robot->rightRange() / m_robot->rangeLength() * 1023.0;
+    foreach(const int port, rightRangeKeys) s.t[analogs[port]] = rightRange;
+  }
+  
+  if(!leftBumpKeys.isEmpty()) {
+    const unsigned leftRange = m_robot->leftRange() / m_robot->rangeLength() * 1023.0;
+    const bool leftBump = leftRange < 150;
+    foreach(const int port, leftBumpKeys) setDigital(port, leftBump);
+  }
+  
+  if(rightBumpKeys.isEmpty()) {
+    const unsigned rightRange = m_robot->rightRange() / m_robot->rangeLength() * 1023.0;
+    const bool rightBump = rightRange < 150;
+    foreach(const int port, rightBumpKeys) setDigital(port, rightBump);
+  }
 
-	const double lRad = M_PI * (m_robot->robot()[0]->rotation() + 45.0) / 180.0;
-	const double rRad = M_PI * (m_robot->robot()[0]->rotation() - 45.0) / 180.0;
-
-	const double lightSensorDisplacement = 15.0;
-
-	const QPointF leftLightSensorPos = m_robot->robot()[0]->pos() +
-			lightSensorDisplacement * QPointF(cos(lRad), sin(lRad));
-
-	const QPointF rightLightSensorPos = m_robot->robot()[0]->pos() +
-			lightSensorDisplacement * QPointF(cos(rRad), sin(rRad));
-
-	QLineF leftLightline(leftLightSensorPos, m_light->pos());
-	QLineF rightLightline(rightLightSensorPos, m_light->pos());
-
-	double leftLightValue = leftLightline.length() / 50.0 * 1023.0;
-	if(leftLightValue > 1023.0) leftLightValue = 1023.0;
-	s.t[analogs[3]] = m_light->isOn() ? leftLightValue : 1023.0;
-
-	double rightLightValue = rightLightline.length() / 50.0 * 1023.0;
-	if(rightLightValue > 1023.0) rightLightValue = 1023.0;
-	s.t[analogs[4]] = m_light->isOn() ? rightLightValue : 1023.0;
-
-	for(int i = 0; i < 8; ++i) {
-		if(i < 7) m_analogs[i]->setText(QString::number(s.t[analogs[i]]));
-		if(i < 2) m_digitals[i]->setText(s.t[DIG_IN] & (1 << (7 - i)) ? "0" : "1");
+  const static double lightDisp = 15.0;
+  
+  if(!leftLightKeys.isEmpty()) {
+    const double lRad = M_PI * (m_robot->robot()[0]->rotation() + 45.0) / 180.0;
+    const QPointF leftLightPos = m_robot->robot()[0]->pos() + lightDisp * QPointF(cos(lRad), sin(lRad));
+    QLineF leftLightline(leftLightPos, m_light->pos());
+  	double leftLightValue = leftLightline.length() / 50.0 * 1023.0;
+  	if(leftLightValue > 1023.0) leftLightValue = 1023.0;
+    const unsigned leftLight = m_light->isOn() ? leftLightValue : 1023.0;
+  	foreach(const int port, _analogs->mapping().keys(3)) s.t[analogs[port]] = leftLight;
+  }
+  
+  if(!rightLightKeys.isEmpty()) {
+    const double rRad = M_PI * (m_robot->robot()[0]->rotation() - 45.0) / 180.0;
+    const QPointF rightLightPos = m_robot->robot()[0]->pos() + lightDisp * QPointF(cos(rRad), sin(rRad));
+    QLineF rightLightline(rightLightPos, m_light->pos());
+    double rightLightValue = rightLightline.length() / 50.0 * 1023.0;
+    if(rightLightValue > 1023.0) rightLightValue = 1023.0;
+    const unsigned rightLight = m_light->isOn() ? rightLightValue : 1023.0;
+    foreach(const int port, _analogs->mapping().keys(4)) s.t[analogs[port]] = rightLight;
+  }
+  
+  if(!leftReflectKeys.isEmpty()) {
+    const unsigned leftReflect = m_robot->leftReflectance() * 1023.0;;
+    foreach(const int port, _analogs->mapping().keys(5)) s.t[analogs[port]] = leftReflect;
+  }
+  
+  if(!rightReflectKeys.isEmpty()) {
+    const unsigned rightReflect = m_robot->rightReflectance() * 1023.0;;
+	  foreach(const int port, _analogs->mapping().keys(6)) s.t[analogs[port]] = rightReflect;
+  }
+  
+	for(unsigned i = 0; i < 8; ++i) {
+    _analogs->setValue(i, s.t[analogs[i]]);
+    _digitals->setValue(i, s.t[DIG_IN] & (1 << (7 - i)) ? 0 : 1);
 	}
-	
-	s.t[analogs[5]] = m_robot->leftReflectance() * 1023.0;
-	s.t[analogs[6]] = m_robot->rightReflectance() * 1023.0;
 
 	ui->scrollArea->update();
+  ui->sim->update();
 }
 
 
@@ -411,7 +427,7 @@ void MainWindow::run(const QString &executable)
 {
 	raise();
 	stop();
-	reset();
+	// reset();
 	m_process = new QProcess();
 	connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),
 		SLOT(finished(int)));
@@ -421,8 +437,24 @@ void MainWindow::run(const QString &executable)
 	env.insert("DYLD_LIBRARY_PATH", QDir::currentPath() + "/prefix/usr/lib:" + env.value("DYLD_LIBRARY_PATH"));
 	env.insert("DYLD_LIBRARY_PATH", QDir::currentPath() + "/prefix/usr:" + env.value("DYLD_LIBRARY_PATH"));
 #endif
+	// env.insert("CAMERA_BASE_CONFIG_PATH", m_workingDirectory.filePath("vision"));
+	
+	Compiler::RootManager root(m_server->userRoot());
+#ifdef Q_OS_MAC
+	env.insert("DYLD_LIBRARY_PATH", env.value("DYLD_LIBRARY_PATH") + ":"
+		+ root.libDirectoryPaths().join(":"));
+#elif defined(Q_OS_WIN)
+	env.insert("PATH", env.value("PATH") + ";" + QDir::currentPath().replace("/", "\\"));
+	env.insert("PATH", env.value("PATH") + ";" + root.libDirectoryPaths().join(";").replace("/", "\\"));
+	// QMessageBox::information(this, "test", env.value("PATH"));
+#else
+	env.insert("LD_LIBRARY_PATH", env.value("LD_LIBRARY_PATH") + ":"
+		+ root.libDirectoryPaths().join(":"));
+#endif
+  
 	m_process->setProcessEnvironment(env);
-	m_process->start(executable, QStringList());
+  qDebug() << executable;
+	m_process->start(root.bin(executable).filePath(executable), QStringList());
 	if(!m_process->waitForStarted(10000)) stop();
 	ui->actionStop->setEnabled(true);
 	ui->console->setProcess(m_process);
@@ -488,4 +520,21 @@ void MainWindow::setDigital(int port, bool on)
 	Kovan::State &s = m_kmod->state();
 	if(!on) s.t[DIG_IN] |= 1 << (7 - port);
 	else s.t[DIG_IN] &= ~(1 << (7 - port));
+}
+
+void MainWindow::updatePorts()
+{
+  
+}
+
+void MainWindow::configPorts()
+{
+  PortConfiguration config;
+  config.setAnalogRoles(_analogs->roles());
+  config.setDigitalRoles(_digitals->roles());
+  config.setAnalogSize(8);
+  config.setDigitalSize(8, 8);
+  if(config.exec() == QDialog::Rejected) return;
+  _analogs->setMapping(config.analogMapping(), _analogs->roles());
+  _digitals->setMapping(config.digitalMapping(), _digitals->roles(), 8);
 }
