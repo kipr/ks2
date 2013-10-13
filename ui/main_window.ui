@@ -732,6 +732,7 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <addaction name="actionPortConfiguration"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -743,8 +744,8 @@
     <property name="title">
      <string>Simulation</string>
     </property>
-    <addaction name="actionStart"/>
     <addaction name="actionStop"/>
+    <addaction name="actionReset"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -777,7 +778,6 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionStop"/>
-   <addaction name="separator"/>
    <addaction name="actionReset"/>
    <addaction name="separator"/>
    <addaction name="actionPortConfiguration"/>
@@ -798,15 +798,6 @@
    </property>
    <property name="text">
     <string>Quit</string>
-   </property>
-  </action>
-  <action name="actionStart">
-   <property name="icon">
-    <iconset resource="../rc/icons.qrc">
-     <normaloff>:/icons/arrow_right.png</normaloff>:/icons/arrow_right.png</iconset>
-   </property>
-   <property name="text">
-    <string>Start</string>
    </property>
   </action>
   <action name="actionStop">
