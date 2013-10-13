@@ -64,6 +64,8 @@ private slots:
   
   void updatePorts();
   void configPorts();
+  
+  void about();
 	
 private:
 	void updateAdvert();

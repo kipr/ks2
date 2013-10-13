@@ -42,6 +42,7 @@
 
 #include <QTimer>
 #include <QGraphicsItem>
+#include <QMessageBox>
 #include <QThreadPool>
 #include <QProcess>
 #include <QDir>
@@ -135,6 +136,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->actionReset, SIGNAL(activated()), SLOT(reset()));
   
   connect(ui->actionPortConfiguration, SIGNAL(activated()), SLOT(configPorts()));
+  
+  connect(ui->actionAbout, SIGNAL(activated()), SLOT(about()));
 
 	bool ret = m_kmod->setup();
 	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
@@ -537,4 +540,9 @@ void MainWindow::configPorts()
   if(config.exec() == QDialog::Rejected) return;
   _analogs->setMapping(config.analogMapping(), _analogs->roles());
   _digitals->setMapping(config.digitalMapping(), _digitals->roles(), 8);
+}
+
+void MainWindow::about()
+{
+  QMessageBox::information(this, tr("About ks2"), tr("Version %1.%2\nCopyright 2013 KISS Institute for Practical Robotics").arg(SIMULATOR_VERSION_MAJOR).arg(SIMULATOR_VERSION_MINOR));
 }
