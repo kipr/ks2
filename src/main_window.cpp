@@ -60,7 +60,8 @@ MainWindow::MainWindow(QWidget *parent)
 	m_buttonProvider(0),
 	m_kmod(new Kovan::KmodSim(this)),
 	m_heartbeat(new Heartbeat(this)),
-	m_process(0)
+	m_process(0),
+  _timer(new QTimer(this))
 {
 	ui->setupUi(this);
   ui->sim->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
@@ -112,9 +113,8 @@ MainWindow::MainWindow(QWidget *parent)
 	
 	if(ui->sim->scene()) ui->sim->scene()->addItem(m_light);
 	
-	QTimer *timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), SLOT(update()));
-	timer->start(50);
+	connect(_timer, SIGNAL(timeout()), SLOT(update()));
+	_timer->start(50);
 	
 	connect(ui->a, SIGNAL(pressed()), SLOT(buttonPressed()));
 	connect(ui->b, SIGNAL(pressed()), SLOT(buttonPressed()));
@@ -245,10 +245,15 @@ void MainWindow::textChanged(::Button::Type::Id id, const QString &text)
 
 void MainWindow::update()
 {
-	if(!m_process) return;
+  if(!m_process) {
+    _timer->setInterval(100);
+    ui->sim->update();
+    return;
+  } else {
+    _timer->setInterval(50);
+  }
 	
 	m_buttonProvider->refresh();
-	m_robot->update();
 	
 	Kovan::State &s = m_kmod->state();
 

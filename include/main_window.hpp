@@ -36,6 +36,7 @@ class Light;
 class Heartbeat;
 class ServerThread;
 class MappingModel;
+class QTimer;
 
 namespace Kovan
 {
@@ -89,6 +90,8 @@ private:
 	Heartbeat *m_heartbeat;
 	
 	QProcess *m_process;
+  
+  QTimer *_timer;
 };
 
 #endif
