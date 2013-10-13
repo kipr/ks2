@@ -46,6 +46,7 @@ public:
 	double rightReflectance() const;
 
 	void update();
+  void restartTime();
 
 	QList<QGraphicsItem *> robot() const;
 	

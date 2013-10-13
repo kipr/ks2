@@ -430,6 +430,7 @@ void MainWindow::run(const QString &executable)
 {
 	raise();
 	stop();
+  m_robot->restartTime();
 	// reset();
 	m_process = new QProcess();
 	connect(m_process, SIGNAL(finished(int, QProcess::ExitStatus)),

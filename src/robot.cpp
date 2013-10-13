@@ -260,6 +260,11 @@ void Robot::update()
 	m_time.restart();
 }
 
+void Robot::restartTime()
+{
+  m_time.restart();
+}
+
 QList<QGraphicsItem *> Robot::robot() const
 {
 	return QList<QGraphicsItem *>() << m_robot << m_leftRange << m_frontRange << m_rightRange;
