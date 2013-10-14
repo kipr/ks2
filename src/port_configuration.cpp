@@ -187,6 +187,7 @@ PortConfig PortConfiguration::defaultConfig()
   c.analog[3] = 3;
   c.analog[4] = 4;
   c.analog[5] = 5;
+  c.analog[6] = 6;
   
   c.digital[0] = 0;
   c.digital[1] = 1;
