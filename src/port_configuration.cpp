@@ -7,13 +7,13 @@
 QDataStream &operator<<(QDataStream &out, const PortConfig &obj)
 {
   
-  out << obj.name << obj.analog << obj.digital;
+  out << obj.name << obj.analog << obj.digital << obj.motor;
   return out;
 }
  
 QDataStream &operator>>(QDataStream &in, PortConfig &obj)
 {
-  in >> obj.name >> obj.analog >> obj.digital;
+  in >> obj.name >> obj.analog >> obj.digital >> obj.motor;
   return in;
 }
 
@@ -52,6 +52,13 @@ void PortConfiguration::setDigitalSize(const quint8 size, const quint8 offset)
   ui->digitals->setPorts(strs);
 }
 
+void PortConfiguration::setMotorSize(const quint8 size, const quint8 offset)
+{
+  QStringList strs;
+  for(quint8 i = 0; i < size; ++i) strs << tr("Motor %1").arg(i + offset);
+  ui->motors->setPorts(strs);
+}
+
 quint8 PortConfiguration::analogSize() const
 {
   return ui->analogs->ports().size();
@@ -60,6 +67,11 @@ quint8 PortConfiguration::analogSize() const
 quint8 PortConfiguration::digitalSize() const
 {
   return ui->digitals->ports().size();
+}
+
+quint8 PortConfiguration::motorSize() const
+{
+  return ui->motors->ports().size();
 }
 
 void PortConfiguration::setAnalogRoles(const QStringList &roles)
@@ -72,6 +84,11 @@ void PortConfiguration::setDigitalRoles(const QStringList &roles)
   ui->digitals->setRoles(roles);
 }
 
+void PortConfiguration::setMotorRoles(const QStringList &roles)
+{
+  ui->motors->setRoles(roles);
+}
+
 const QStringList &PortConfiguration::analogRoles() const
 {
   return ui->analogs->roles();
@@ -80,6 +97,11 @@ const QStringList &PortConfiguration::analogRoles() const
 const QStringList &PortConfiguration::digitalRoles() const
 {
   return ui->digitals->roles();
+}
+
+const QStringList &PortConfiguration::motorRoles() const
+{
+  return ui->motors->roles();
 }
 
 QMap<int, int> PortConfiguration::analogMapping() const
@@ -92,6 +114,11 @@ QMap<int, int> PortConfiguration::digitalMapping() const
   return ui->digitals->mapping();
 }
 
+QMap<int, int> PortConfiguration::motorMapping() const
+{
+  return ui->motors->mapping();
+}
+
 QMap<int, int> PortConfiguration::currentAnalogMapping()
 {
   return loadConfigs()[0].analog;
@@ -100,6 +127,11 @@ QMap<int, int> PortConfiguration::currentAnalogMapping()
 QMap<int, int> PortConfiguration::currentDigitalMapping()
 {
   return loadConfigs()[0].digital;
+}
+
+QMap<int, int> PortConfiguration::currentMotorMapping()
+{
+  return loadConfigs()[0].motor;
 }
 
 int PortConfiguration::exec()
@@ -134,11 +166,13 @@ void PortConfiguration::currentConfigChanged(const int index)
   if(_current < _configs.size() && _current >= 0) {
     _configs[_current].analog = ui->analogs->mapping();
     _configs[_current].digital = ui->digitals->mapping();
+    _configs[_current].motor = ui->motors->mapping();
   }
   _current = index;
   if(index >= _configs.size() || index < 0) return;
   ui->analogs->setMapping(_configs[index].analog);
   ui->digitals->setMapping(_configs[index].digital);
+  ui->motors->setMapping(_configs[index].motor);
   
 }
 
@@ -156,6 +190,9 @@ PortConfig PortConfiguration::defaultConfig()
   
   c.digital[0] = 0;
   c.digital[1] = 1;
+  
+  c.motor[0] = 0;
+  c.motor[2] = 1;
   return c;
 }
 

@@ -20,6 +20,7 @@
 #define _MAIN_WINDOW_HPP_
 
 #include <QMainWindow>
+#include <QMap>
 
 #include "button_ids.hpp"
 
@@ -77,6 +78,7 @@ private:
 	
   MappingModel *_analogs;
   MappingModel *_digitals;
+  QMap<int, int> _motors;
 	TouchDial *m_motors[4];
 	TouchDial *m_servos[4];
 	Robot *m_robot;

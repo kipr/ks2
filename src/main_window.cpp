@@ -72,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
     << tr("Right Reflectance"));
   _digitals->setMapping(PortConfiguration::currentDigitalMapping(), QStringList()
     << tr("Left Bump") << tr("Right Bump"));
+  _motors = PortConfiguration::currentMotorMapping();
   
   ui->analogs->setModel(_analogs);
   ui->digitals->setModel(_digitals);
@@ -143,7 +144,7 @@ MainWindow::MainWindow(QWidget *parent)
 	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
 
 	TcpServer *serial = new TcpServer;
-	if(!serial->bind(KOVAN_SERIAL_PORT)) {
+	if(!serial->bind(KOVAN_SERIAL_PORT + 1)) {
 		perror("bind");
 #ifdef WIN32
 		qCritical() << WSAGetLastError();
@@ -327,8 +328,8 @@ void MainWindow::update()
 		
     const static double m = 2.5;
     int port = unfixPort(i);
-    if(port == 2) m_robot->setLeftSpeed(val * (pwm ? m : 1.0));
-    else if(port == 0) m_robot->setRightSpeed(val * (pwm ? m : 1.0));
+    foreach(const int p, _motors.keys(0)) if(port == p) m_robot->setLeftSpeed(val * (pwm ? m : 1.0));
+    foreach(const int p, _motors.keys(1)) if(port == p) m_robot->setRightSpeed(val * (pwm ? m : 1.0));
 
     m_motors[port]->setValue(val * 100.0);
     m_servos[i]->setValue((s.t[servos[port]] - 6500) * 2048 / 26000);
@@ -497,7 +498,8 @@ void MainWindow::updateAdvert()
 	Advert ad(tr("N/A").toAscii(),
 		version.toAscii(),
 		tr("2D Simulator").toAscii(),
-		tr("Simulator").toAscii());
+		tr("Simulator").toAscii(),
+    KOVAN_SERIAL_PORT + 1);
 	m_heartbeat->setAdvert(ad);
 }
 
@@ -541,11 +543,14 @@ void MainWindow::configPorts()
   PortConfiguration config;
   config.setAnalogRoles(_analogs->roles());
   config.setDigitalRoles(_digitals->roles());
+  config.setMotorRoles(QStringList() << "Left Wheel" << "Right Wheel");
   config.setAnalogSize(8);
   config.setDigitalSize(8, 8);
+  config.setMotorSize(4);
   if(config.exec() == QDialog::Rejected) return;
   _analogs->setMapping(config.analogMapping(), _analogs->roles());
   _digitals->setMapping(config.digitalMapping(), _digitals->roles(), 8);
+  _motors = config.motorMapping();
 }
 
 void MainWindow::about()
