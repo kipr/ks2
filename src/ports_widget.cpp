@@ -127,7 +127,7 @@ void PortsWidget::paintEvent(QPaintEvent *event)
       const int y1 = yOffset + spacing * 0.25;
       const int size = spacing * 0.5;
       const int hue = (i * goldenAngle) % 360;
-      p.setPen(QPen(QColor::fromHsvF(hue / 360.0, 1.0, 1.0), 2));
+      p.setPen(QPen(QColor::fromHsvF(hue / 360.0, 1.0, 0.5), 2));
       switch(_portStates.value(i, PortsWidget::None)) {
         case PortsWidget::None:
         p.setBrush(Qt::transparent);
@@ -188,7 +188,7 @@ void PortsWidget::paintEvent(QPaintEvent *event)
     QList<int> keys = _mapping.keys();
     foreach(const int port, keys) {
       const int hue = (port * goldenAngle) % 360;
-      QPen pen(QColor::fromHsvF(hue / 360.0, 1.0, 1.0), 4);
+      QPen pen(QColor::fromHsvF(hue / 360.0, 1.0, 0.5), 4);
       pen.setCapStyle(Qt::RoundCap);
       p.setPen(pen);
       p.drawLine(_portRects[port].center(), _roleRects[_mapping[port]].center());
