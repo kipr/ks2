@@ -73,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
     << tr("Left Light") << tr("Right Light") << tr("Left Reflectance")
     << tr("Right Reflectance"));
   _digitals->setMapping(PortConfiguration::currentDigitalMapping(), QStringList()
-    << tr("Left Bump") << tr("Right Bump"));
+    << tr("Left Touch") << tr("Right Touch"));
   _motors = PortConfiguration::currentMotorMapping();
   
   ui->analogs->setModel(_analogs);
