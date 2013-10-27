@@ -11,22 +11,23 @@ public:
 	ConsoleWidget(QWidget *parent = 0);
 	~ConsoleWidget();
 	
-	void setProcess(QIODevice *process);
-	QIODevice *process() const;
+	void setProcess(QProcess *process);
+	QProcess *process() const;
+	
+signals:
+	void abortRequested();
+	
+protected:
+	void keyPressEvent(QKeyEvent * event);
 
 private slots:
 	void readStandardOut();
+	void readStandardErr();
 
 private:
-	void printPrompt();
-	
-	int inputCharCount;
-	QTextCursor curCursorLoc;
-	QString cmdStr;
-	QStringList cmdHistory;
-	int histLocation;
-	QString tempCmd;
-	QIODevice *m_process;
+  QString _current;
+  int _offset;
+	QProcess *m_process;
 };
 
 #endif

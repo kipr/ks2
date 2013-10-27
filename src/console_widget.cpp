@@ -5,13 +5,10 @@
 #include <QDebug>
 
 ConsoleWidget::ConsoleWidget(QWidget *parent)
-	: QTextEdit(parent), m_process(0)
+	: QTextEdit(parent)
+  , _offset(0)
+  , m_process(0)
 {
-	cmdStr = "";
-	curCursorLoc = this->textCursor();
-	inputCharCount = 0;
-	histLocation = -1;
-	tempCmd = "";
 	setProcess(0);
 }
 
@@ -20,31 +17,43 @@ ConsoleWidget::~ConsoleWidget()
 	setProcess(0);
 }
 
-void ConsoleWidget::setProcess(QIODevice *process)
+void ConsoleWidget::setProcess(QProcess *process)
 {
 	if(m_process) m_process->disconnect(this);
 	m_process = process;
 	setReadOnly(!m_process);
 	if(!m_process) return;
 	clear();
-	
-	connect(m_process, SIGNAL(readyRead()), this, SLOT(readStandardOut()));
+	m_process->setProcessChannelMode(QProcess::MergedChannels);
+	connect(m_process, SIGNAL(readyReadStandardOutput()), this, SLOT(readStandardOut()));
+	connect(m_process, SIGNAL(readyReadStandardError()), this, SLOT(readStandardErr()));
 }
 
-QIODevice *ConsoleWidget::process() const
+QProcess *ConsoleWidget::process() const
 {
 	return m_process;
 }
 
+void ConsoleWidget::keyPressEvent(QKeyEvent *event)
+{
+  QTextEdit::keyPressEvent(event);
+  if(event->modifiers() != Qt::NoModifier && event->modifiers() != Qt::ShiftModifier) return;
+  QString text = event->text();
+  // if(event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) text = "\n";
+  
+  _current.insert(_current.size() + _offset, text);
+  m_process->write(_current.toAscii(), _current.length());
+  _current = QString();
+}
+
 void ConsoleWidget::readStandardOut()
 {
-	QByteArray array = m_process->readAll();
-	int i = array.lastIndexOf('\f');
-	if(i >= 0) {
-		setPlainText("");
-		array = array.mid(i + 1);
-	}
-	insertPlainText(array);
+	insertPlainText(m_process->readAllStandardOutput());
 	moveCursor(QTextCursor::End, QTextCursor::KeepAnchor);
-	update();
+}
+
+void ConsoleWidget::readStandardErr()
+{
+	insertPlainText(m_process->readAllStandardError());
+	moveCursor(QTextCursor::End, QTextCursor::KeepAnchor);
 }
