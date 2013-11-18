@@ -146,6 +146,7 @@ MainWindow::MainWindow(QWidget *parent)
 	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
 
 	TcpServer *serial = new TcpServer;
+  serial->setConnectionRestriction(TcpServer::OnlyLocal);
 	if(!serial->bind(KOVAN_SERIAL_PORT + 1)) {
 		perror("bind");
 #ifdef WIN32
@@ -488,6 +489,7 @@ void MainWindow::stop()
 
 void MainWindow::updateAdvert()
 {
+  if(!m_heartbeat) return;
 	QString version = (QString::number(SIMULATOR_VERSION_MAJOR) + "." + QString::number(SIMULATOR_VERSION_MINOR));
 	#if defined(Q_OS_WIN)
 	version += " for Windows";
