@@ -20,6 +20,8 @@
 
 #include <QApplication>
 #include <QDir>
+#include "board_file_manager.hpp"
+#include "board_selector_dialog.hpp"
 
 #ifdef _MSC_VER
 #pragma comment(linker, "/ENTRY:mainCRTStartup")
@@ -38,6 +40,7 @@ int main(int argc, char *argv[])
 #else
 	QDir::setCurrent(QApplication::applicationDirPath());
 #endif
+  
 	MainWindow mainWindow;
 	mainWindow.show();
 	mainWindow.raise();

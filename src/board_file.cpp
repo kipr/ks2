@@ -2,16 +2,27 @@
 
 #include <QGraphicsScene>
 #include <QFile>
+#include <QFileInfo>
 #include <QDebug>
 #include <QGraphicsLineItem>
 
-QGraphicsScene *BoardFile::load(const QString &path)
+BoardFile::BoardFile(QObject *const parent)
+  : QObject(parent)
+  , _scene(0)
 {
-	QFile file(path);
-	if(!file.open(QIODevice::ReadOnly)) return 0;
-	QGraphicsScene *scene = new QGraphicsScene();
-	parse(file.readAll(), scene);
-	return scene;
+}
+
+BoardFile *BoardFile::load(const QString &path)
+{
+  BoardFile *boardFile = new BoardFile();
+  QFile file(path);
+  if(!file.open(QIODevice::ReadOnly)) return 0;
+  QGraphicsScene *scene = new QGraphicsScene(boardFile);
+  parse(file.readAll(), scene);
+  
+  boardFile->_scene = scene;
+  boardFile->_name = QFileInfo(path).baseName();
+  return boardFile;
 }
 
 void BoardFile::parse(const QString &contents, QGraphicsScene *scene)
@@ -107,4 +118,19 @@ void BoardFile::error(const quint32 &line, const QString &id)
 void BoardFile::error(const quint32 &line, const quint16 &expecting, const quint16 &got)
 {
 	qWarning() << "Line" << line << "is malformed. Expected" << expecting << "arguments, got" << got;
+}
+
+const QString &BoardFile::name() const
+{
+  return _name;
+}
+
+const QGraphicsScene *BoardFile::scene() const
+{
+  return _scene;
+}
+
+QGraphicsScene *BoardFile::scene()
+{
+  return _scene;
 }

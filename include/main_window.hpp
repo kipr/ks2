@@ -23,6 +23,7 @@
 #include <QMap>
 
 #include "button_ids.hpp"
+#include "board_file_manager.hpp"
 
 namespace Ui
 {
@@ -67,12 +68,17 @@ private slots:
   void updatePorts();
   void configPorts();
   
+  void updateBoard();
+  void selectBoard();
+  
   void about();
 	
 private:
 	void updateAdvert();
 	int unfixPort(int port);
 	void setDigital(int port, bool on);
+  
+  BoardFileManager _boardFileManager;
 	
 	Ui::MainWindow *ui;
 	

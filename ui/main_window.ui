@@ -733,6 +733,7 @@
      <string>Edit</string>
     </property>
     <addaction name="actionPortConfiguration"/>
+    <addaction name="actionSelectBoard"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -781,6 +782,7 @@
    <addaction name="actionReset"/>
    <addaction name="separator"/>
    <addaction name="actionPortConfiguration"/>
+   <addaction name="actionSelectBoard"/>
   </widget>
   <action name="actionAbout">
    <property name="icon">
@@ -826,6 +828,15 @@
    </property>
    <property name="text">
     <string>Port Configuration</string>
+   </property>
+  </action>
+  <action name="actionSelectBoard">
+   <property name="icon">
+    <iconset resource="../rc/icons.qrc">
+     <normaloff>:/icons/shape_move_back.png</normaloff>:/icons/shape_move_back.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select Board</string>
    </property>
   </action>
  </widget>

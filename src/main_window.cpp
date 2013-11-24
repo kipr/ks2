@@ -24,6 +24,7 @@
 #include "kovan_kmod_sim.hpp"
 #include "kovan_button_provider.hpp"
 #include "robot.hpp"
+#include "board_selector_dialog.hpp"
 #include "light.hpp"
 #include "simulator.hpp"
 #include "board_file.hpp"
@@ -49,6 +50,7 @@
 #include <QProcess>
 #include <QDir>
 #include <QDebug>
+#include <QSettings>
 
 #include <cmath> // tmp
 
@@ -67,6 +69,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui->setupUi(this);
   ui->sim->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+  
+  qDebug() << "Loaded" << _boardFileManager.loadLocation(QDir::currentPath()) << "board(s)";
   
   _analogs->setMapping(PortConfiguration::currentAnalogMapping(), QStringList()
     << tr("Left Range") << tr("Middle Range") << tr("Right Range")
@@ -104,7 +108,6 @@ MainWindow::MainWindow(QWidget *parent)
 	
 	// connect(m_kmod, SIGNAL(stateChanged(State)), SLOT(update()));
 	
-	ui->sim->setScene(BoardFile::load("2013.board"));
 	ui->sim->setSceneRect(0.0, 0.0, 275.0, 275.0);
 
 	
@@ -139,6 +142,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->actionReset, SIGNAL(activated()), SLOT(reset()));
   
   connect(ui->actionPortConfiguration, SIGNAL(activated()), SLOT(configPorts()));
+  connect(ui->actionSelectBoard, SIGNAL(activated()), SLOT(selectBoard()));
   
   connect(ui->actionAbout, SIGNAL(activated()), SLOT(about()));
 
@@ -174,6 +178,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->actionStop->setEnabled(false);
 	
 	updateAdvert();
+  updateBoard();
 }
 
 MainWindow::~MainWindow()
@@ -555,6 +560,31 @@ void MainWindow::configPorts()
   _analogs->setMapping(config.analogMapping(), _analogs->roles());
   _digitals->setMapping(config.digitalMapping(), _digitals->roles(), 8);
   _motors = config.motorMapping();
+}
+
+void MainWindow::updateBoard()
+{
+  QSettings settings;
+  settings.beginGroup("board");
+  BoardFile *const boardFile = _boardFileManager.lookupBoardFile(settings.value("current_board", "2013").toString());
+  settings.endGroup();
+  ui->sim->setScene(boardFile->scene());
+}
+
+void MainWindow::selectBoard()
+{
+  BoardSelectorDialog boardSelector(this);
+  boardSelector.setBoardFiles(_boardFileManager.boardFiles());
+  if(boardSelector.exec() != QDialog::Accepted) return;
+  BoardFile *const board = boardSelector.selectedBoardFile();
+  if(!board) return;
+  
+  QSettings settings;
+  settings.beginGroup("board");
+  settings.setValue("current_board", board->name());
+  settings.endGroup();
+  settings.sync();
+  updateBoard();
 }
 
 void MainWindow::about()
