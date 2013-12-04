@@ -130,9 +130,9 @@ void TouchDial::mouseMoveEvent(QMouseEvent *event)
 	const int xoff = (w - d) / 2;
 	const int yoff = (h - d) / 2;
 	
-	QPointF posF = event->posF();
-	double x = (posF.x() - xoff - r);
-	double y = (posF.y() - yoff - r);
+	QPointF localPos = event->localPos();
+	double x = (localPos.x() - xoff - r);
+	double y = (localPos.y() - yoff - r);
 	
 	double angle = atan(y / x);
 

@@ -159,12 +159,12 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->y, SIGNAL(released()), SLOT(buttonReleased()));
 	connect(ui->z, SIGNAL(released()), SLOT(buttonReleased()));
 	
-	connect(ui->actionStop, SIGNAL(activated()), SLOT(stop()));
-	connect(ui->actionQuit, SIGNAL(activated()), QCoreApplication::instance(), SLOT(quit()));
-	connect(ui->actionReset, SIGNAL(activated()), SLOT(reset()));
-  connect(ui->actionPortConfiguration, SIGNAL(activated()), SLOT(configPorts()));
-  connect(ui->actionSelectBoard, SIGNAL(activated()), SLOT(selectBoard()));
-  connect(ui->actionAbout, SIGNAL(activated()), SLOT(about()));
+	connect(ui->actionStop, SIGNAL(triggered()), SLOT(stop()));
+	connect(ui->actionQuit, SIGNAL(triggered()), QCoreApplication::instance(), SLOT(quit()));
+	connect(ui->actionReset, SIGNAL(triggered()), SLOT(reset()));
+  connect(ui->actionPortConfiguration, SIGNAL(triggered()), SLOT(configPorts()));
+  connect(ui->actionSelectBoard, SIGNAL(triggered()), SLOT(selectBoard()));
+  connect(ui->actionAbout, SIGNAL(triggered()), SLOT(about()));
 
 	bool ret = m_kmod->setup();
 	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
@@ -503,10 +503,10 @@ void MainWindow::updateAdvert()
 	version += " for *nix";
 	#endif
 	
-	Advert ad(tr("N/A").toAscii(),
-		version.toAscii(),
-		tr("2D Simulator").toAscii(),
-		tr("Simulator").toAscii(),
+	Advert ad(tr("N/A").toUtf8(),
+		version.toUtf8(),
+		tr("2D Simulator").toUtf8(),
+		tr("Simulator").toUtf8(),
     KOVAN_SERIAL_PORT + 1);
 	m_heartbeat->setAdvert(ad);
 }

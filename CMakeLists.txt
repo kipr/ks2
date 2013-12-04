@@ -1,8 +1,8 @@
 project(ks2)
 
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 2.8.12)
 
-find_package(Qt4 REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
 set(INCLUDE ${CMAKE_SOURCE_DIR}/include)
 set(SRC ${CMAKE_SOURCE_DIR}/src)
@@ -16,13 +16,11 @@ file(GLOB SOURCES ${SRC}/*.cpp)
 file(GLOB UIS ${UI}/*.ui)
 file(GLOB RCS ${RC}/*.qrc)
 
-set(QT_USE_QTNETWORK TRUE)
+find_package(Qt5Network REQUIRED)
 
-include(${QT_USE_FILE})
-
-qt4_wrap_cpp(SOURCES ${INCLUDES})
-qt4_wrap_ui(SOURCES ${UIS})
-qt4_add_resources(SOURCES ${RCS})
+qt5_wrap_cpp(SOURCES ${INCLUDES})
+qt5_wrap_ui(SOURCES ${UIS})
+qt5_add_resources(SOURCES ${RCS})
 
 IF(WIN32)
   INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/../prefix/include)
@@ -44,7 +42,8 @@ ENDIF()
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/deploy)
 
-target_link_libraries(ks2 ${QT_LIBRARIES} kovanserial pcompiler kar)
+qt5_use_modules(ks2 Widgets Network)
+target_link_libraries(ks2 kovanserial pcompiler kar)
 
 #######################################
 #            Installation             #
@@ -75,7 +74,7 @@ ENDIF(APPLE)
 
 IF(APPLE)
 	ADD_CUSTOM_TARGET(ks2_MacDeployQt ALL 
-		COMMAND ${QT_BINARY_DIR}/macdeployqt ${CMAKE_SOURCE_DIR}/deploy/ks2.app -verbose=0
+		COMMAND ${_qt5Core_install_prefix}/bin/macdeployqt ${CMAKE_SOURCE_DIR}/deploy/ks2.app -verbose=0
 		WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 		DEPENDS ks2)
 	
