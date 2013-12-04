@@ -108,6 +108,7 @@ MainWindow::MainWindow(QWidget *parent)
 	
 	// connect(m_kmod, SIGNAL(stateChanged(State)), SLOT(update()));
 	
+  updateBoard();
 	ui->sim->setSceneRect(0.0, 0.0, 275.0, 275.0);
 
 	
@@ -178,7 +179,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->actionStop->setEnabled(false);
 	
 	updateAdvert();
-  updateBoard();
 }
 
 MainWindow::~MainWindow()
