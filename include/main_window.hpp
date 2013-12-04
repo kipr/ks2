@@ -70,6 +70,9 @@ private slots:
   
   void updateBoard();
   void selectBoard();
+  void newBoard(const QString &board);
+  
+  bool putRobotAndLight();
   
   void about();
 	

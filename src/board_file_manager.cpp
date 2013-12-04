@@ -37,6 +37,11 @@ BoardFile *BoardFileManager::lookupBoardFile(const QString &name)
   return 0;
 }
 
+void BoardFileManager::addLocation(const QString &path)
+{
+  _locations.push_back(path);
+}
+
 quint32 BoardFileManager::loadLocation(const QString &path)
 {
   quint32 added = 0;
@@ -49,4 +54,10 @@ quint32 BoardFileManager::loadLocation(const QString &path)
     ++added;
   }
   return added;
+}
+
+void BoardFileManager::reload()
+{
+  _boards.clear();
+  Q_FOREACH(const QString &loc, _locations) loadLocation(loc);
 }

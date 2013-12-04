@@ -92,6 +92,10 @@ const QList<BoardFile *> &BoardSelectorDialog::boardFiles() const
 
 BoardFile *BoardSelectorDialog::selectedBoardFile() const
 {
+  BoardFileItem *const boardItem
+    = BoardFileItem::cast(_model->itemFromIndex(ui->boards->currentIndex()));
+  if(boardItem) return boardItem->board();
+  
   return 0;
 }
 

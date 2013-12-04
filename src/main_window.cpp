@@ -66,11 +66,42 @@ MainWindow::MainWindow(QWidget *parent)
 	m_heartbeat(new Heartbeat(this)),
 	m_process(0),
   _timer(new QTimer(this))
-{
+{  
 	ui->setupUi(this);
+  
+	TcpServer *serial = new TcpServer;
+  serial->setConnectionRestriction(TcpServer::OnlyLocal);
+	if(!serial->bind(KOVAN_SERIAL_PORT + 1)) {
+		perror("bind");
+#ifdef WIN32
+		qCritical() << WSAGetLastError();
+#endif
+	}
+	if(!serial->listen(2)) {
+		perror("listen");
+#ifdef WIN32
+		qCritical() << WSAGetLastError();
+#endif
+	}
+	m_server = new ServerThread(serial);
+  
+	QDir prog(QDir::homePath() + "/" + tr("KISS Programs"));
+	prog.makeAbsolute();
+	if(!prog.exists()) QDir().mkpath(prog.absolutePath());
+	m_server->setUserRoot(prog.path());
+  //m_server->setUserRoot(QDir::tempPath());
+  
+	connect(m_server, SIGNAL(run(QString)), SLOT(run(QString)));
+	m_server->setAutoDelete(true);
+	QThreadPool::globalInstance()->start(m_server);
+  
+  connect(m_server, SIGNAL(newBoard(QString)), SLOT(newBoard(QString)));
+  
   ui->sim->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   
-  qDebug() << "Loaded" << _boardFileManager.loadLocation(QDir::currentPath()) << "board(s)";
+  _boardFileManager.addLocation(QDir::currentPath());
+  _boardFileManager.addLocation(Compiler::RootManager(m_server->userRoot()).boardPath());
+  _boardFileManager.reload();
   
   _analogs->setMapping(PortConfiguration::currentAnalogMapping(), QStringList()
     << tr("Left Range") << tr("Middle Range") << tr("Right Range")
@@ -110,15 +141,6 @@ MainWindow::MainWindow(QWidget *parent)
 	
   updateBoard();
 	ui->sim->setSceneRect(0.0, 0.0, 275.0, 275.0);
-
-	
-	if(ui->sim->scene())
-	foreach(QGraphicsItem *item, m_robot->robot())
-		ui->sim->scene()->addItem(item);
-		
-	m_robot->robot()[0]->setRotation(45);
-	
-	if(ui->sim->scene()) ui->sim->scene()->addItem(m_light);
 	
 	connect(_timer, SIGNAL(timeout()), SLOT(update()));
 	_timer->start(50);
@@ -139,36 +161,13 @@ MainWindow::MainWindow(QWidget *parent)
 	
 	connect(ui->actionStop, SIGNAL(activated()), SLOT(stop()));
 	connect(ui->actionQuit, SIGNAL(activated()), QCoreApplication::instance(), SLOT(quit()));
-	
 	connect(ui->actionReset, SIGNAL(activated()), SLOT(reset()));
-  
   connect(ui->actionPortConfiguration, SIGNAL(activated()), SLOT(configPorts()));
   connect(ui->actionSelectBoard, SIGNAL(activated()), SLOT(selectBoard()));
-  
   connect(ui->actionAbout, SIGNAL(activated()), SLOT(about()));
 
 	bool ret = m_kmod->setup();
 	if (!ret) qWarning() << "m_kmod->setup() failed.  (main_window.cpp : " << __LINE__ << ")";
-
-	TcpServer *serial = new TcpServer;
-  serial->setConnectionRestriction(TcpServer::OnlyLocal);
-	if(!serial->bind(KOVAN_SERIAL_PORT + 1)) {
-		perror("bind");
-#ifdef WIN32
-		qCritical() << WSAGetLastError();
-#endif
-	}
-	if(!serial->listen(2)) {
-		perror("listen");
-#ifdef WIN32
-		qCritical() << WSAGetLastError();
-#endif
-	}
-	m_server = new ServerThread(serial);
-  m_server->setUserRoot(QDir::tempPath());
-	connect(m_server, SIGNAL(run(QString)), SLOT(run(QString)));
-	m_server->setAutoDelete(true);
-	QThreadPool::globalInstance()->start(m_server);
 	
 	m_buttonProvider = new Kovan::ButtonProvider(m_kmod, this);
 	ui->extras->connect(m_buttonProvider, SIGNAL(extraShownChanged(bool)), SLOT(setVisible(bool)));
@@ -569,22 +568,49 @@ void MainWindow::updateBoard()
   BoardFile *const boardFile = _boardFileManager.lookupBoardFile(settings.value("current_board", "2013").toString());
   settings.endGroup();
   ui->sim->setScene(boardFile->scene());
+  putRobotAndLight();
 }
 
 void MainWindow::selectBoard()
 {
+  _boardFileManager.reload();
+  
   BoardSelectorDialog boardSelector(this);
   boardSelector.setBoardFiles(_boardFileManager.boardFiles());
   if(boardSelector.exec() != QDialog::Accepted) return;
   BoardFile *const board = boardSelector.selectedBoardFile();
   if(!board) return;
-  
+    
   QSettings settings;
   settings.beginGroup("board");
   settings.setValue("current_board", board->name());
   settings.endGroup();
   settings.sync();
   updateBoard();
+}
+
+void MainWindow::newBoard(const QString &board)
+{
+  _boardFileManager.reload();
+    
+  QSettings settings;
+  settings.beginGroup("board");
+  settings.setValue("current_board", QFileInfo(board).baseName());
+  settings.endGroup();
+  settings.sync();
+  updateBoard();
+}
+
+bool MainWindow::putRobotAndLight()
+{
+	if(!ui->sim->scene()) return false;
+  
+  foreach(QGraphicsItem *item, m_robot->robot())
+    ui->sim->scene()->addItem(item);
+  ui->sim->scene()->addItem(m_light);
+  m_robot->robot()[0]->setRotation(45);
+  
+  return true;
 }
 
 void MainWindow::about()
